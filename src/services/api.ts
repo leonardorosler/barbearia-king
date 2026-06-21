@@ -108,6 +108,14 @@ export const api: AxiosInstance = axios.create({
   timeout: 15_000,
 })
 
+export const publicApi: AxiosInstance = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  timeout: 15_000,
+})
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Request interceptor — injeta tokens e x-barbearia-id
 // ─────────────────────────────────────────────────────────────────────────────
@@ -119,6 +127,18 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${accessToken}`
     }
 
+    const barbeariaId = storage.getBarbeariaId()
+    if (barbeariaId) {
+      config.headers['x-barbearia-id'] = barbeariaId
+    }
+
+    return config
+  },
+  (error) => Promise.reject(error),
+)
+
+publicApi.interceptors.request.use(
+  (config) => {
     const barbeariaId = storage.getBarbeariaId()
     if (barbeariaId) {
       config.headers['x-barbearia-id'] = barbeariaId

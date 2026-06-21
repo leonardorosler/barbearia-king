@@ -6,7 +6,7 @@ import { motion, useInView } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { CalendarPlus, Clock, ChevronRight, Check, MapPin, Phone, Star, Scissors } from 'lucide-react'
 import { useBarbearia } from '@/contexts/BarbeariaContext'
-import { api } from '@/services/api'
+import { publicApi } from '@/services/api'
 import { Button, SkeletonCard, Badge } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import type { Servico, Barbeiro, Plano } from '@/types'
@@ -288,7 +288,7 @@ function Servicos() {
   const [mostrarTodos, setMostrarTodos] = useState(false)
   const { data, isLoading } = useQuery({
     queryKey: ['servicos-publicos'],
-    queryFn:  () => api.get<Servico[]>('/servicos').then((r) => r.data),
+    queryFn:  () => publicApi.get<Servico[]>('/servicos').then((r) => r.data),
   })
 
   const servicos = (data ?? []).filter((s) => s.ativo)
@@ -464,7 +464,7 @@ function Servicos() {
 function Barbeiros() {
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ['barbeiros-publicos'],
-    queryFn:  () => api.get<Barbeiro[]>('/barbeiros').then((r) => r.data),
+    queryFn:  () => publicApi.get<Barbeiro[]>('/barbeiros').then((r) => r.data),
     retry: 3,
     staleTime: 60 * 1000,
     refetchOnMount: 'always',
@@ -543,7 +543,7 @@ function Barbeiros() {
 function Planos() {
   const { data, isLoading } = useQuery({
     queryKey: ['planos-publicos'],
-    queryFn:  () => api.get<Plano[]>('/planos').then((r) => r.data),
+    queryFn:  () => publicApi.get<Plano[]>('/planos').then((r) => r.data),
   })
 
   const planos = (data ?? []).filter((p) => p.ativo)
