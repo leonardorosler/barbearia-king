@@ -1,9 +1,10 @@
 ﻿import { useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { motion, useInView } from 'framer-motion'
 import type { Variants } from 'framer-motion'
-import { CalendarPlus, Clock, ChevronRight, Check, MapPin, Phone, Star, Scissors, Sparkles } from 'lucide-react'
+import { CalendarPlus, Clock, ChevronRight, Check, MapPin, Phone, Star, Scissors } from 'lucide-react'
 import { useBarbearia } from '@/contexts/BarbeariaContext'
 import { api } from '@/services/api'
 import { Button, SkeletonCard, Badge } from '@/components/ui'
@@ -122,7 +123,7 @@ function SectionHeader({ eyebrow, title, description }: {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const HERO_FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=1800&q=85'
+  '/banner.png'
 
 type BarbeariaContextValue = ReturnType<typeof useBarbearia>
 
@@ -150,22 +151,22 @@ function Hero() {
       <img
         src={heroImage}
         alt=""
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full object-cover bg-surface-950"
       />
       <div className="absolute inset-0 bg-gradient-to-r from-black via-surface-950/82 to-surface-950/35" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_42%,rgba(200,133,26,0.22),transparent_30%)]" />
       <div className="absolute inset-0 bg-hero-pattern opacity-30" />
 
-      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col px-4 pb-10 pt-6 sm:px-6 lg:pt-8">
+      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col px-4 pb-10 pt-12 sm:px-6 sm:pt-14 lg:pt-8">
         <motion.div
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
-          className="hidden items-center justify-between gap-4 border-y border-white/10 bg-black/20 px-4 py-3 text-xs font-body text-surface-300 backdrop-blur-sm lg:flex"
+          className="hidden items-center justify-between gap-4 border-y border-white/10 bg-black/25 px-4 py-3 text-xs font-body text-surface-300 backdrop-blur-sm lg:flex"
         >
-          <span className="inline-flex items-center gap-2">
-            <MapPin className="h-3.5 w-3.5 text-brand-400" />
-            {barbearia.endereco ?? 'Atendimento com hora marcada'}
+          <span className="inline-flex min-w-0 items-center gap-2">
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-brand-400" />
+            <span className="truncate">{barbearia.endereco ?? 'Atendimento com hora marcada'}</span>
           </span>
           <span className="inline-flex items-center gap-2">
             <Clock className="h-3.5 w-3.5 text-brand-400" />
@@ -179,7 +180,7 @@ function Hero() {
           )}
         </motion.div>
 
-        <div className="grid flex-1 items-center gap-10 py-12 lg:grid-cols-[minmax(0,1fr)_360px] lg:py-16">
+        <div className="grid flex-1 items-center gap-10 py-14 sm:py-16 lg:grid-cols-[minmax(0,1fr)_360px] lg:py-16">
           <div className="max-w-3xl">
             <motion.div
               initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
@@ -198,7 +199,7 @@ function Hero() {
               className="max-w-3xl font-display text-5xl font-black uppercase leading-[0.88] text-white sm:text-7xl lg:text-8xl"
             >
               Barbearia<br />
-              <span className="text-gradient-brand">King</span>
+              <span className="text-gradient-brand ">King</span>
             </motion.h1>
 
             <motion.p
@@ -224,49 +225,50 @@ function Hero() {
               </Button>
             </motion.div>
           </div>
-
-          {/* <motion.div
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.75 }}
-            className="hidden justify-self-end lg:block"
-          >
-            <button
-              type="button"
-              onClick={() => document.getElementById('servicos')?.scrollIntoView({ behavior: 'smooth' })}
-              className="group flex h-24 w-24 items-center justify-center rounded-full border border-white/20 bg-white text-surface-950 shadow-2xl transition-transform hover:scale-105"
-              aria-label="Ver servicos"
-            >
-              <Play className="h-8 w-8 fill-current transition-transform group-hover:translate-x-0.5" />
-            </button>
-          </motion.div> */}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.9 }}
-          className="grid gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-3"
-        >
-          {[
-            { icon: Scissors, title: 'Corte preciso', text: 'Servicos com tempo, preco e duracao claros.' },
-            { icon: CalendarPlus, title: 'Agenda online', text: 'Escolha barbeiro, data e horario disponivel.' },
-            { icon: Sparkles, title: 'Acabamento premium', text: 'Experiencia pensada para fidelizar clientes.' },
-          ].map((item) => {
-            const Icon = item.icon
-            return (
-              <div key={item.title} className="bg-surface-950/86 p-5 backdrop-blur-sm">
-                <Icon className="mb-3 h-5 w-5 text-brand-400" />
-                <p className="font-display text-lg font-bold text-surface-50">{item.title}</p>
-                <p className="mt-1 text-sm font-body leading-relaxed text-surface-400">{item.text}</p>
-              </div>
-            )
-          })}
-        </motion.div>
       </div>
     </section>
   )
 }
+
+function HeroTransition() {
+  const itens = [
+    { icon: Scissors, label: 'Corte alinhado' },
+    { icon: Clock, label: 'Horário marcado' },
+    { icon: Star, label: 'Acabamento premium' },
+  ]
+
+  return (
+    <section className="relative z-20 bg-surface-950 px-3 py-4 sm:px-6 lg:py-5">
+      <div className="mr-1 ml-1 border-y border-white/10 bg-surface-950/95 shadow-2xl shadow-black/25 backdrop-blur-md [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-8 lg:px-16 xl:px-52">
+          <div className="flex items-center justify-center gap-3 text-center sm:justify-start sm:px-3 sm:text-left">
+            <span className="hidden h-px w-7 bg-brand-500 sm:block sm:w-10" />
+            <p className="text-xs font-body font-bold uppercase tracking-[0.24em] text-brand-400">
+              Experiência King
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-2 pl-6 min-[420px]:grid-cols-3 min-[420px]:pl-2 sm:flex sm:items-center sm:gap-5 sm:pl-0">
+            {itens.map((item) => {
+              const Icon = item.icon
+              return (
+                <div key={item.label} className="flex min-w-0 items-center gap-2 text-xs font-body font-semibold text-surface-200 sm:text-sm">
+                  <Icon className="h-4 w-4 shrink-0 text-brand-400" />
+                  <span className="truncate">{item.label}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function Servicos() {
+  const [mostrarTodos, setMostrarTodos] = useState(false)
   const { data, isLoading } = useQuery({
     queryKey: ['servicos-publicos'],
     queryFn:  () => api.get<Servico[]>('/servicos').then((r) => r.data),
@@ -274,16 +276,22 @@ function Servicos() {
 
   const servicos = (data ?? []).filter((s) => s.ativo)
   const servicoDestaque = servicos[0]
-  const servicosLista = servicos.slice(0, 6)
+  const limiteServicosVisiveis = 7
+  const servicosRestantes = servicos.slice(1)
+  const servicosLista = mostrarTodos
+    ? servicosRestantes
+    : servicosRestantes.slice(0, Math.max(limiteServicosVisiveis - 1, 0))
+  const temServicosOcultos = servicos.length > limiteServicosVisiveis
+  const quantidadeOculta = Math.max(servicos.length - limiteServicosVisiveis, 0)
 
   return (
-    <Section id="servicos" className="bg-surface-100 px-0 py-0">
-      <div className="mx-auto grid max-w-6xl overflow-hidden lg:grid-cols-[0.95fr_1.05fr]">
-        <motion.div variants={fadeIn} className="relative min-h-[420px] bg-surface-900 lg:min-h-[620px]">
+    <Section id="servicos" className="bg-surface-950 px-0 py-0 lg:px-6 ">
+      <div className="mx-auto grid max-w-6xl overflow-hidden lg:items-start lg:gap-6 lg:overflow-visible lg:grid-cols-[390px_minmax(0,1fr)] xl:grid-cols-[430px_minmax(0,1fr)]">
+        <motion.div variants={fadeIn} className="relative min-h-[420px] bg-surface-900 lg:sticky lg:top-24 lg:h-[540px] lg:min-h-0 lg:overflow-hidden xl:h-[580px]">
           <img
             src="/finalizando.png"
             alt="Barbeiro finalizando corte"
-            className="absolute inset-0 h-full w-auto object-cover"
+            className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
           <div className="absolute bottom-6 left-6 right-6 border border-white/15 bg-black/55 p-5 backdrop-blur-sm">
@@ -291,12 +299,12 @@ function Servicos() {
               Atendimento com estilo
             </p>
             <p className="mt-2 font-display text-3xl font-black uppercase leading-none text-white">
-              Corte certo<br />confiaça em alta
+              Corte certo<br />confiança em alta
             </p>
           </div>
         </motion.div>
 
-        <div className="relative overflow-hidden bg-[#f7f4ee] px-5 py-12 text-surface-950 sm:px-8 lg:px-12 lg:py-16">
+        <div className="relative overflow-hidden bg-[#f7f4ee] px-5 py-12 text-surface-950 sm:px-8 lg:px-10 lg:py-10 xl:px-12">
           <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full border border-brand-500/20" />
           <div className="pointer-events-none absolute bottom-0 right-0 h-32 w-32 border-l border-t border-brand-500/10" />
 
@@ -306,19 +314,21 @@ function Servicos() {
             </span>
             <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <h2 className="max-w-xl font-display text-4xl font-black uppercase leading-[0.92] text-surface-950 sm:text-5xl">
+                <h2 className="max-w-xl font-display text-4xl font-black uppercase leading-[0.92] text-surface-950 sm:text-5xl lg:text-[3.15rem]">
                   Serviços para sair no detalhe
                 </h2>
                 <p className="mt-5 max-w-xl text-sm font-body leading-relaxed text-surface-600 sm:text-base">
                   Escolha o serviço, veja duração e valor antes de reservar. A agenda segue conectada aos horários reais da barbearia.
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-2 sm:flex lg:grid">
-                <span className="border border-surface-200 bg-white px-3 py-2 text-xs font-body font-semibold text-surface-600">
-                  Preço claro
+              <div className="grid grid-cols-2 gap-2 sm:flex lg:grid lg:min-w-[190px]">
+                <span className="inline-flex items-center gap-2 rounded-md border border-brand-500/20 bg-white/80 px-3 py-2 text-xs font-body font-bold text-surface-700 shadow-sm shadow-surface-950/5">
+                  <Check className="h-3.5 w-3.5 shrink-0 text-brand-600" />
+                  <span>Preço claro</span>
                 </span>
-                <span className="border border-surface-200 bg-white px-3 py-2 text-xs font-body font-semibold text-surface-600">
-                  Horário online
+                <span className="inline-flex items-center gap-2 rounded-md border border-brand-500/20 bg-white/80 px-3 py-2 text-xs font-body font-bold text-surface-700 shadow-sm shadow-surface-950/5">
+                  <Clock className="h-3.5 w-3.5 shrink-0 text-brand-600" />
+                  <span>Horário online</span>
                 </span>
               </div>
             </div>
@@ -333,23 +343,32 @@ function Servicos() {
               <p className="font-body text-sm text-surface-600">Nenhum serviço disponível no momento.</p>
             </div>
           ) : (
-            <>
+            <div className="relative border-t border-surface-200/80 pt-5">
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <p className="text-xs font-body font-bold uppercase tracking-[0.2em] text-surface-500">
+                  Menu de serviços
+                </p>
+                <span className="h-px flex-1 bg-surface-200" />
+              </div>
+
               {servicoDestaque && (
-                <motion.div variants={fadeUp} className="relative mb-8 overflow-hidden border border-brand-500/30 bg-surface-950 p-5 text-white shadow-card">
-                  <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-brand-500/15 to-transparent" />
-                  <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <p className="text-xs font-body font-bold uppercase tracking-[0.18em] text-brand-300">Serviço em destaque</p>
-                      <h3 className="mt-2 font-display text-2xl font-black uppercase leading-tight text-white">{servicoDestaque.nome}</h3>
+                <motion.div variants={fadeUp} className="relative mb-5 overflow-hidden rounded-md border border-brand-500/30 bg-surface-950 p-5 text-white shadow-card lg:p-4">
+                  <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-brand-500/20 to-transparent" />
+                  <div className="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="inline-flex items-center gap-2 text-xs font-body font-bold uppercase tracking-[0.18em] text-brand-300">
+                        <Star className="h-3.5 w-3.5" /> Serviço em destaque
+                      </p>
+                      <h3 className="mt-3 max-w-lg break-words font-display text-2xl font-black uppercase leading-tight text-white lg:text-[1.35rem]">{servicoDestaque.nome}</h3>
                       {servicoDestaque.descricao && (
                         <p className="mt-2 max-w-md text-sm font-body leading-relaxed text-surface-300">{servicoDestaque.descricao}</p>
                       )}
                     </div>
-                    <div className="shrink-0 text-left sm:text-right">
-                      <p className="font-display text-3xl font-black text-brand-300">
+                    <div className="flex shrink-0 items-center justify-between gap-3 sm:block sm:text-right">
+                      <p className="font-display text-3xl font-black leading-none text-brand-300">
                         R$ {Number(servicoDestaque.preco).toFixed(2).replace('.', ',')}
                       </p>
-                      <p className="mt-2 inline-flex items-center gap-1.5 border border-white/10 bg-white/5 px-3 py-1 text-xs font-body text-surface-300">
+                      <p className="inline-flex items-center gap-1.5 border border-white/10 bg-white/5 px-3 py-1 text-xs font-body text-surface-300 sm:mt-3">
                         <Clock className="h-3.5 w-3.5" /> {servicoDestaque.duracao} min
                       </p>
                     </div>
@@ -357,46 +376,64 @@ function Servicos() {
                 </motion.div>
               )}
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2 lg:gap-3">
                 {servicosLista.map((servico, i) => (
                   <motion.div
                     key={servico.id}
                     variants={fadeUp}
                     custom={i}
-                    className="group flex min-h-[190px] flex-col border border-surface-200 bg-white/95 p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-500/50 hover:bg-white hover:shadow-card-hover"
+                    className="group relative flex min-h-[190px] flex-col overflow-hidden rounded-md border border-surface-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-500/50 hover:shadow-card-hover lg:min-h-[166px] lg:p-4"
                   >
-                    <div className="flex flex-1 items-start gap-4">
-                      <span className="font-display text-3xl font-black leading-none text-brand-500/30 transition-colors group-hover:text-brand-500/55">
-                        {String(i + 1).padStart(2, '0')}
+                    <div className="absolute inset-x-0 top-0 h-0.5 bg-brand-500/0 transition-colors group-hover:bg-brand-500" />
+                    <div className="mb-4 flex items-start justify-between gap-4">
+                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-50 font-display text-sm font-black text-brand-600 ring-1 ring-surface-200 transition-colors group-hover:bg-brand-500 group-hover:text-white">
+                        {String(i + 2).padStart(2, '0')}
                       </span>
-                      <div className="flex min-w-0 flex-1 flex-col">
-                        <div className="min-w-0">
-                          <h3 className="max-w-full break-words font-display text-[1.05rem] font-black uppercase leading-[1.05] text-surface-950 transition-colors group-hover:text-brand-700 sm:text-lg">
-                            {servico.nome}
-                          </h3>
-                          <span className="mt-3 inline-flex w-fit items-center rounded-full bg-brand-500/10 px-3 py-1 text-xs font-body font-bold text-brand-700 ring-1 ring-brand-500/20">
-                            R$ {Number(servico.preco).toFixed(2).replace('.', ',')}
-                          </span>
-                        </div>
-                        {servico.descricao && (
-                          <p className="mt-3 line-clamp-2 text-xs font-body leading-relaxed text-surface-500">
-                            {servico.descricao}
-                          </p>
-                        )}
-                        <div className="mt-auto flex items-center justify-between gap-3 border-t border-surface-100 pt-4">
-                          <span className="inline-flex items-center gap-1.5 text-xs font-body text-surface-500">
-                            <Clock className="h-3.5 w-3.5" /> {servico.duracao} min
-                          </span>
-                          <Link to="/cadastro" className="inline-flex items-center gap-1 text-xs font-body font-bold uppercase tracking-wide text-brand-600 transition-colors hover:text-brand-700">
-                            Agendar <ChevronRight className="h-3.5 w-3.5" />
-                          </Link>
-                        </div>
+                      <span className="shrink-0 rounded-full bg-brand-500/10 px-3 py-1 text-xs font-body font-bold text-brand-700 ring-1 ring-brand-500/15">
+                        R$ {Number(servico.preco).toFixed(2).replace('.', ',')}
+                      </span>
+                    </div>
+
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <h3 className="max-w-full break-words font-display text-[1.05rem] font-black uppercase leading-[1.05] text-surface-950 transition-colors group-hover:text-brand-700 sm:text-lg lg:text-[1rem]">
+                        {servico.nome}
+                      </h3>
+                      {servico.descricao && (
+                        <p className="mt-3 line-clamp-2 text-xs font-body leading-relaxed text-surface-500">
+                          {servico.descricao}
+                        </p>
+                      )}
+                      <div className="mt-auto flex items-center justify-between gap-3 border-t border-surface-100 pt-4">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-body font-medium text-surface-500">
+                          <Clock className="h-3.5 w-3.5" /> {servico.duracao} min
+                        </span>
+                        <Link to="/cadastro" className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-body font-bold uppercase tracking-wide text-brand-600 transition-colors hover:bg-brand-500/10 hover:text-brand-700">
+                          Agendar <ChevronRight className="h-3.5 w-3.5" />
+                        </Link>
                       </div>
                     </div>
                   </motion.div>
                 ))}
               </div>
-            </>
+
+              {temServicosOcultos && (
+                <motion.div variants={fadeUp} className="mt-6 flex flex-col items-center gap-3 border-t border-surface-200 pt-5 sm:flex-row sm:justify-between">
+                  <p className="text-center text-xs font-body font-semibold text-surface-500 sm:text-left">
+                    {mostrarTodos
+                      ? 'Mostrando todos os serviços disponíveis.'
+                      : `Mais ${quantidadeOculta} serviço${quantidadeOculta > 1 ? 's' : ''} disponível${quantidadeOculta > 1 ? 's' : ''}.`}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setMostrarTodos((valor) => !valor)}
+                    className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-brand-500/30 bg-white px-5 py-2 text-xs font-body font-bold uppercase tracking-[0.16em] text-brand-700 shadow-sm transition-all hover:border-brand-500/60 hover:bg-brand-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                  >
+                    {mostrarTodos ? 'Ver menos' : 'Ver mais'}
+                    <ChevronRight className={cn('h-4 w-4 transition-transform', mostrarTodos ? '-rotate-90' : 'rotate-90')} />
+                  </button>
+                </motion.div>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -488,8 +525,8 @@ function Planos() {
     <Section id="planos" className="max-w-6xl mx-auto">
       <SectionHeader
         eyebrow="Planos da barbearia"
-        title={<>Seu plano é<br />definido pela equipe</>}
-        description="A barbearia atribui o plano ideal ao seu perfil. O foco continua sendo agendamentos e atendimento."
+        title={<>Nossos planos </>}
+        description="Escolha seu plano, reserve seu horário e mantenha seu visual sempre em dia com a praticidade que sua rotina pede."
       />
 
       {isLoading ? (
@@ -647,6 +684,7 @@ export default function LandingPage() {
   return (
     <div className="bg-surface-950">
       <Hero />
+      <HeroTransition />
       <Servicos />
       <Barbeiros />
       <Planos />

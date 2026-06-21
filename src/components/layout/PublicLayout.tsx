@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, Outlet } from 'react-router-dom'
-import { Menu, X, Scissors, Phone } from 'lucide-react'
+import { ArrowUpRight, CalendarPlus, Clock, MapPin, Menu, Phone, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useBarbearia } from '@/contexts/BarbeariaContext'
 import { useAuth } from '@/contexts/AuthContext'
@@ -43,6 +43,46 @@ const DASHBOARD_POR_PAPEL: Record<Papel, string> = {
   ADMIN:    '/admin/dashboard',
 }
 
+const HEADER_OFFSET = 84
+
+function scrollToHash(hash: string) {
+  const id = decodeURIComponent(hash.replace('#', ''))
+  const element = document.getElementById(id)
+
+  if (!element) return false
+
+  const top = element.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET
+  window.scrollTo({ top, behavior: 'smooth' })
+  return true
+}
+
+function HashScroll() {
+  const location = useLocation()
+
+  useEffect(() => {
+    if (location.pathname !== '/') return
+
+    if (!location.hash) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    let attempts = 0
+    let timer = 0
+
+    const scrollWhenReady = () => {
+      attempts += 1
+      if (scrollToHash(location.hash) || attempts >= 10) return
+      timer = window.setTimeout(scrollWhenReady, 100)
+    }
+
+    timer = window.setTimeout(scrollWhenReady, 80)
+    return () => window.clearTimeout(timer)
+  }, [location.pathname, location.hash])
+
+  return null
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Navbar
 // ─────────────────────────────────────────────────────────────────────────────
@@ -53,6 +93,7 @@ function Navbar() {
   const location                   = useLocation()
   const [menuOpen, setMenuOpen]    = useState(false)
   const [scrolled, setScrolled]    = useState(false)
+  const currentPath                = `${location.pathname}${location.hash}`
 
   // Sombra ao rolar
   useEffect(() => {
@@ -62,7 +103,7 @@ function Navbar() {
   }, [])
 
   // Fecha menu ao navegar
-  useEffect(() => setMenuOpen(false), [location.pathname])
+  useEffect(() => setMenuOpen(false), [location.pathname, location.hash])
 
   return (
     <header
@@ -104,7 +145,7 @@ function Navbar() {
               className={cn(
                 'px-3 py-1.5 rounded-lg text-sm font-body font-medium',
                 'transition-colors duration-150',
-                location.pathname === link.to
+                (link.to === '/' ? currentPath === '/' : currentPath === link.to)
                   ? 'text-brand-400 bg-brand-500/10'
                   : 'text-surface-300 hover:text-surface-100 hover:bg-surface-800',
               )}
@@ -196,73 +237,66 @@ function Navbar() {
 
 function Footer() {
   const { barbearia } = useBarbearia()
+  const instagram = barbearia.instagram?.replace('@', '')
+  const mapsUrl = barbearia.endereco
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(barbearia.endereco)}`
+    : null
 
   return (
-    <footer className="bg-surface-950 border-t border-surface-800">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <footer className="relative overflow-hidden border-t border-surface-800 bg-surface-950">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-500/50 to-transparent" />
+      <div className="pointer-events-none absolute -right-20 top-12 h-56 w-56 rounded-full border border-brand-500/10" />
+
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:py-12">
+        <div className="mb-24 grid gap-5 border border-surface-800 bg-surface-900/55 p-5 shadow-2xl shadow-black/20 sm:p-6 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div>
+            <p className="text-xs font-body font-bold uppercase tracking-[0.24em] text-brand-400">
+              Sua cadeira espera
+            </p>
+            <h3 className="mt-3 max-w-2xl font-display text-2xl font-black uppercase leading-none text-white sm:text-3xl">
+              Agende seu hor&aacute;rio e mantenha o visual sempre alinhado.
+            </h3>
+          </div>
+          <Link
+            to="/cadastro"
+            className="inline-flex h-11 items-center justify-center gap-2 bg-brand-500 px-5 text-sm font-body font-bold uppercase tracking-[0.12em] text-white transition-colors hover:bg-brand-600"
+          >
+            Agendar agora
+            <CalendarPlus className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <div className="grid gap-10 mt-5 lg:grid-cols-[1.25fr_0.75fr_1fr]">
 
           {/* Identidade */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
+          <div>
+            <Link to="/" className="inline-flex items-center gap-3">
               {barbearia.logo ? (
-                <img src={barbearia.logo} alt={barbearia.nome} className="h-7 w-auto" />
+                <img src={barbearia.logo} alt={barbearia.nome} className="h-10 w-auto object-contain" />
               ) : (
-                <div className="w-7 h-7 rounded-lg bg-brand-gradient flex items-center justify-center">
-                  <Scissors className="w-3.5 h-3.5 text-white" />
-                </div>
+                <span className="flex h-10 w-10 items-center justify-center rounded-md bg-brand-gradient">
+                  <img src="/logoking.png" alt="" />
+                </span>
               )}
-              <span className="font-display font-bold text-surface-50">{barbearia.nome}</span>
-            </div>
-            {barbearia.endereco && (
-              <p className="text-sm font-body text-surface-500 leading-relaxed">
-                {barbearia.endereco}
-              </p>
-            )}
-          </div>
+              <span className="font-display text-xl font-black uppercase leading-none text-surface-50">
+                {barbearia.nome}
+              </span>
+            </Link>
 
-          {/* Links */}
-          <div className="flex flex-col gap-3">
-            <h4 className="text-xs font-semibold font-body text-surface-400 uppercase tracking-wider">
-              Navegação
-            </h4>
-            <nav className="flex flex-col gap-2">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className="text-sm font-body text-surface-500 hover:text-surface-200 transition-colors w-fit"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
+            <p className="mt-5 max-w-sm text-sm font-body leading-relaxed text-surface-400">
+              Cortes, barba e acabamento com hora marcada, pre&ccedil;o claro e atendimento pensado para a rotina de quem valoriza presen&ccedil;a.
+            </p>
 
-          {/* Contato e redes */}
-          <div className="flex flex-col gap-3">
-            <h4 className="text-xs font-semibold font-body text-surface-400 uppercase tracking-wider">
-              Contato
-            </h4>
-            <div className="flex flex-col gap-2">
-              {barbearia.telefone && (
+            <div className="mt-6 flex flex-wrap gap-2">
+              {barbearia.instagram && instagram && (
                 <a
-                  href={`tel:${barbearia.telefone}`}
-                  className="flex items-center gap-2 text-sm font-body text-surface-500 hover:text-surface-200 transition-colors"
-                >
-                  <Phone className="w-3.5 h-3.5" />
-                  {barbearia.telefone}
-                </a>
-              )}
-              {barbearia.instagram && (
-                <a
-                  href={`https://instagram.com/${barbearia.instagram.replace('@', '')}`}
+                  href={`https://instagram.com/${instagram}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm font-body text-surface-500 hover:text-brand-400 transition-colors"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-surface-800 bg-surface-900 text-surface-300 transition-colors hover:border-brand-500/50 hover:text-brand-400"
+                  aria-label="Instagram"
                 >
-                  <InstagramIcon className="w-3.5 h-3.5" />
-                  {barbearia.instagram}
+                  <InstagramIcon className="h-4 w-4" />
                 </a>
               )}
               {barbearia.facebook && (
@@ -270,22 +304,101 @@ function Footer() {
                   href={`https://facebook.com/${barbearia.facebook}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm font-body text-surface-500 hover:text-brand-400 transition-colors"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-surface-800 bg-surface-900 text-surface-300 transition-colors hover:border-brand-500/50 hover:text-brand-400"
+                  aria-label="Facebook"
                 >
-                  <FacebookIcon className="w-3.5 h-3.5" />
-                  {barbearia.facebook}
+                  <FacebookIcon className="h-4 w-4" />
                 </a>
               )}
             </div>
           </div>
+
+          {/* Links */}
+          <div>
+            <h4 className="text-xs font-body font-bold uppercase tracking-[0.22em] text-surface-500">
+              Navegação
+            </h4>
+            <nav className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 sm:flex sm:flex-wrap lg:grid lg:grid-cols-1">
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="group inline-flex w-fit items-center gap-2 text-sm font-body font-semibold text-surface-300 transition-colors hover:text-brand-400"
+                >
+                  <span className="h-px w-3 bg-surface-700 transition-colors group-hover:bg-brand-500" />
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          {/* Contato e redes */}
+          <div>
+            <h4 className="text-xs font-body font-bold uppercase tracking-[0.22em] text-surface-500">
+              Contato
+            </h4>
+            <div className="mt-4 grid gap-3">
+              {barbearia.telefone && (
+                <a
+                  href={`tel:${barbearia.telefone}`}
+                  className="group flex items-center gap-3 border border-surface-800 bg-surface-900/70 p-3 text-sm font-body text-surface-300 transition-colors hover:-translate-y-0.5 hover:border-brand-500/40 hover:bg-surface-900 hover:text-surface-100"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-surface-800 text-brand-400">
+                    <Phone className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-semibold">{barbearia.telefone}</span>
+                    <span className="mt-0.5 block text-xs text-surface-500 group-hover:text-surface-400">
+                      Toque para ligar
+                    </span>
+                  </span>
+                  <ArrowUpRight className="h-4 w-4 text-surface-600 transition-colors group-hover:text-brand-400" />
+                </a>
+              )}
+              {barbearia.endereco && mapsUrl && (
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-start gap-3 border border-surface-800 bg-surface-900/70 p-3 text-sm font-body text-surface-300 transition-colors hover:-translate-y-0.5 hover:border-brand-500/40 hover:bg-surface-900 hover:text-surface-100"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-surface-800 text-brand-400">
+                    <MapPin className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0 flex-1 leading-relaxed">
+                    <span className="block">{barbearia.endereco}</span>
+                    <span className="mt-1 block text-xs text-surface-500 group-hover:text-surface-400">
+                      Abrir no mapa
+                    </span>
+                  </span>
+                  <ArrowUpRight className="mt-2 h-4 w-4 shrink-0 text-surface-600 transition-colors group-hover:text-brand-400" />
+                </a>
+              )}
+              <Link
+                to="/cadastro"
+                className="group flex items-center gap-3 border border-surface-800 bg-surface-900/70 p-3 text-sm font-body text-surface-300 transition-colors hover:-translate-y-0.5 hover:border-brand-500/40 hover:bg-surface-900 hover:text-surface-100"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-surface-800 text-brand-400">
+                  <Clock className="h-4 w-4" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold">Atendimento com hor&aacute;rio marcado</span>
+                  <span className="mt-0.5 block text-xs text-surface-500 group-hover:text-surface-400">
+                    Escolher um hor&aacute;rio
+                  </span>
+                </span>
+                <ArrowUpRight className="h-4 w-4 text-surface-600 transition-colors group-hover:text-brand-400" />
+              </Link>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-surface-800 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="mt-10 flex flex-col gap-3 border-t border-surface-800 pt-5 text-xs font-body text-surface-600 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs font-body text-surface-600">
             © {new Date().getFullYear()} {barbearia.nome}. Todos os direitos reservados.
           </p>
-          <p className="text-xs font-body text-surface-700">
-            Powered by Monky Software
+          <p className="text-surface-700">
+            Powered by <span className="font-semibold text-surface-500">Monky Software</span>
           </p>
         </div>
       </div>
@@ -300,6 +413,7 @@ function Footer() {
 export function PublicLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-surface-950">
+      <HashScroll />
       <Navbar />
       <main className="flex-1 pt-16">
         <Outlet />
