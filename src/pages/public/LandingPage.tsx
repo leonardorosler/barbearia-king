@@ -15,6 +15,23 @@ function barbeiroEstaAtivo(barbeiro: Barbeiro) {
   return barbeiro.usuario.ativo ?? barbeiro.ativo ?? true
 }
 
+function formatTelefone(telefone: string) {
+  const digits = telefone.replace(/\D/g, '')
+  const semCodigoPais = digits.length > 11 && digits.startsWith('55')
+    ? digits.slice(2)
+    : digits
+
+  if (semCodigoPais.length === 11) {
+    return semCodigoPais.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
+  }
+
+  if (semCodigoPais.length === 10) {
+    return semCodigoPais.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
+  }
+
+  return telefone
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Hook reveal
 // ─────────────────────────────────────────────────────────────────────────────
@@ -175,7 +192,7 @@ function Hero() {
           {barbearia.telefone && (
             <a href={`tel:${barbearia.telefone}`} className="inline-flex items-center gap-2 hover:text-brand-300">
               <Phone className="h-3.5 w-3.5 text-brand-400" />
-              {barbearia.telefone}
+              {formatTelefone(barbearia.telefone)}
             </a>
           )}
         </motion.div>
@@ -445,9 +462,12 @@ function Servicos() {
 // Barbeiros
 // ─────────────────────────────────────────────────────────────────────────────
 function Barbeiros() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ['barbeiros-publicos'],
-    queryFn:  () => api.get<Barbeiro[]>('/barbeiros').then((r) => r.data).catch(() => []),
+    queryFn:  () => api.get<Barbeiro[]>('/barbeiros').then((r) => r.data),
+    retry: 3,
+    staleTime: 60 * 1000,
+    refetchOnMount: 'always',
   })
 
   const barbeiros = (data ?? []).filter(barbeiroEstaAtivo)
@@ -463,6 +483,15 @@ function Barbeiros() {
       {isLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
           {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} hasAvatar lines={1} />)}
+        </div>
+      ) : isError ? (
+        <div className="flex flex-col items-center gap-4 py-12 text-center">
+          <p className="font-body text-sm text-surface-500">
+            Nao foi possivel carregar os barbeiros agora.
+          </p>
+          <Button variant="outline" size="sm" loading={isFetching} onClick={() => refetch()}>
+            Tentar novamente
+          </Button>
         </div>
       ) : barbeiros.length === 0 ? (
         <p className="text-center text-surface-500 font-body py-12">
