@@ -28,14 +28,14 @@ export default function ClienteAssinatura() {
 
   if (isLoading) {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="mx-auto w-full max-w-3xl">
         <SkeletonCard lines={4} />
       </div>
     )
   }
 
   return (
-    <motion.div initial="hidden" animate="visible" className="max-w-2xl mx-auto flex flex-col gap-6">
+    <motion.div initial="hidden" animate="visible" className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       <motion.div variants={fadeUp} custom={0}>
         <h1 className="text-2xl font-display font-bold text-surface-50 flex items-center gap-2">
           <CreditCard className="w-5 h-5 text-brand-400" /> Meu Plano
@@ -49,8 +49,8 @@ export default function ClienteAssinatura() {
         <motion.div variants={fadeUp} custom={1}>
           <Card highlighted={assinatura.status === 'ATIVA'}>
             <CardHeader>
-              <div className="flex items-start justify-between gap-4">
-                <div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                <div className="min-w-0">
                   <p className="text-xs font-body text-surface-500 uppercase tracking-wider mb-1">
                     Plano atual
                   </p>
@@ -66,7 +66,7 @@ export default function ClienteAssinatura() {
                 <span className="text-sm font-body text-surface-500 font-normal ml-1">/mes</span>
               </p>
 
-              <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-surface-800 bg-surface-900 px-3 py-1 text-xs font-body text-surface-400">
+              <div className="mt-4 inline-flex max-w-full items-center gap-2 rounded-full border border-surface-800 bg-surface-900 px-3 py-1 text-xs font-body text-surface-400">
                 <CalendarDays className="w-3.5 h-3.5 text-brand-400" />
                 Atribuído pela equipe em {formatData(assinatura.criadoEm)}
               </div>
@@ -90,9 +90,9 @@ export default function ClienteAssinatura() {
 
                       return (
                         <li key={ps.servico.id} className="flex flex-col gap-2 rounded-lg border border-surface-800 bg-surface-900 p-3 text-sm font-body text-surface-300">
-                          <div className="flex items-center gap-2.5">
+                          <div className="flex min-w-0 items-center gap-2.5">
                             <Check className="w-4 h-4 text-brand-400 shrink-0" />
-                            <span className="font-medium text-surface-100">{ps.servico.nome}</span>
+                            <span className="min-w-0 font-medium text-surface-100">{ps.servico.nome}</span>
                             <span className="text-surface-600">({ps.servico.duracao}min)</span>
                           </div>
                           <div className="flex flex-wrap gap-2 pl-6 text-xs text-surface-500">
@@ -110,9 +110,9 @@ export default function ClienteAssinatura() {
             </CardBody>
 
             <CardFooter>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Link to="/cliente/agendamentos">
-                  <Button variant="primary" size="md" leftIcon={<CalendarDays className="w-4 h-4" />}>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Link to="/cliente/agendamentos" className="w-full sm:w-auto">
+                  <Button variant="primary" size="md" fullWidth leftIcon={<CalendarDays className="w-4 h-4" />}>
                     Ver agendamentos
                   </Button>
                 </Link>
@@ -142,14 +142,14 @@ export default function ClienteAssinatura() {
                     Enquanto isso, voce pode continuar usando o app para agendar horários.
                   </p>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  <Link to="/cliente/novo-agendamento">
-                    <Button variant="primary" size="md" leftIcon={<CalendarDays className="w-4 h-4" />}>
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                  <Link to="/cliente/novo-agendamento" className="w-full sm:w-auto">
+                    <Button variant="primary" size="md" fullWidth leftIcon={<CalendarDays className="w-4 h-4" />}>
                       Agendar horário
                     </Button>
                   </Link>
-                  <Link to="/cliente/dashboard">
-                    <Button variant="outline" size="md">
+                  <Link to="/cliente/dashboard" className="w-full sm:w-auto">
+                    <Button variant="outline" size="md" fullWidth>
                       Voltar ao dashboard
                     </Button>
                   </Link>

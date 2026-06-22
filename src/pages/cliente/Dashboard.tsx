@@ -42,7 +42,7 @@ export default function ClienteDashboard() {
   const primeiroNome = usuario?.nome?.split(' ')[0] ?? 'Cliente'
 
   return (
-    <motion.div initial="hidden" animate="visible" className="max-w-4xl mx-auto flex flex-col gap-6">
+    <motion.div initial="hidden" animate="visible" className="mx-auto flex w-full max-w-5xl flex-col gap-6">
 
       {/* Saudação */}
       <motion.div variants={fadeUp} custom={0}>
@@ -59,6 +59,7 @@ export default function ClienteDashboard() {
         <Link to="/cliente/novo-agendamento">
           <div className={cn(
             'group relative overflow-hidden rounded-xl p-5 border cursor-pointer',
+            'min-h-[140px]',
             'bg-brand-gradient border-brand-400/30',
             'hover:shadow-brand-lg transition-all duration-300',
           )}>
@@ -73,6 +74,7 @@ export default function ClienteDashboard() {
         <Link to="/cliente/assinatura">
           <div className={cn(
             'group relative overflow-hidden rounded-xl p-5 border cursor-pointer',
+            'min-h-[140px]',
             'bg-surface-900 border-surface-800',
             'hover:border-surface-700 hover:shadow-card-hover transition-all duration-300',
           )}>
@@ -122,7 +124,7 @@ export default function ClienteDashboard() {
           <div className="flex flex-col gap-3">
             {proximos.map((ag) => (
               <div key={ag.id} className={cn(
-                'flex items-center gap-4 p-4 rounded-xl border',
+                'flex flex-col gap-4 rounded-xl border p-4 sm:flex-row sm:items-center',
                 'bg-surface-900 border-surface-800',
               )}>
                 {/* Data */}
@@ -135,9 +137,9 @@ export default function ClienteDashboard() {
                   </span>
                 </div>
                 {/* Info */}
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="font-body font-semibold text-surface-100 truncate">{ag.servico.nome}</p>
-                  <div className="flex items-center gap-3 mt-0.5">
+                  <div className="mt-0.5 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
                     <span className="text-xs font-body text-surface-500">
                       com {ag.barbeiro.usuario.nome}
                     </span>
@@ -146,7 +148,9 @@ export default function ClienteDashboard() {
                     </span>
                   </div>
                 </div>
-                <BadgeAgendamento status={ag.status} />
+                <div className="self-start sm:self-center">
+                  <BadgeAgendamento status={ag.status} />
+                </div>
               </div>
             ))}
           </div>

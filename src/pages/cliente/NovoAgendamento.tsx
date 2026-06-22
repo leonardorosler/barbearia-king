@@ -55,16 +55,16 @@ function addMinutesToDateTime(data: string, hora: string, minutos: number) {
 
 function StepBar({ atual }: { atual: number }) {
   return (
-    <div className="flex items-center gap-2 mb-8">
+    <div className="mb-8 flex min-w-0 items-start gap-1 sm:gap-2">
       {STEPS.map((step, i) => {
         const done    = step.id < atual
         const active  = step.id === atual
         const Icon    = step.icon
         return (
-          <div key={step.id} className="flex items-center gap-2 flex-1 last:flex-none">
+          <div key={step.id} className="flex min-w-0 flex-1 items-start gap-1.5 last:flex-none sm:gap-2">
             <div className="flex flex-col items-center gap-1">
               <div className={cn(
-                'w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300',
+                'flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all duration-300',
                 done   && 'bg-brand-500 border-brand-500',
                 active && 'bg-brand-500/15 border-brand-500',
                 !done && !active && 'bg-surface-900 border-surface-700',
@@ -75,7 +75,7 @@ function StepBar({ atual }: { atual: number }) {
                 }
               </div>
               <span className={cn(
-                'text-2xs font-body hidden sm:block',
+                'hidden text-2xs font-body sm:block',
                 active ? 'text-brand-400' : done ? 'text-surface-400' : 'text-surface-600',
               )}>
                 {step.label}
@@ -83,7 +83,7 @@ function StepBar({ atual }: { atual: number }) {
             </div>
             {i < STEPS.length - 1 && (
               <div className={cn(
-                'flex-1 h-px mb-4 transition-colors duration-300',
+                'mt-4 h-px flex-1 transition-colors duration-300',
                 done ? 'bg-brand-500' : 'bg-surface-800',
               )} />
             )}
@@ -139,18 +139,18 @@ function StepServico({
                     Plano
                   </span>
                 )}
-                <div className={cn('flex items-start justify-between gap-2 mb-2', servicoNoPlano && 'pr-16')}>
-                  <p className="font-display font-semibold text-surface-50 group-hover:text-brand-300 transition-colors">
+                <div className={cn('mb-2 flex min-w-0 flex-col gap-1 pr-0 sm:flex-row sm:items-start sm:justify-between sm:gap-2', servicoNoPlano && 'pt-3 sm:pr-16 sm:pt-0')}>
+                  <p className="min-w-0 font-display font-semibold text-surface-50 transition-colors group-hover:text-brand-300">
                     {s.nome}
                   </p>
-                  <span className="text-brand-400 font-bold font-body text-sm shrink-0 ml-2">
+                  <span className="shrink-0 font-body text-sm font-bold text-brand-400 sm:ml-2">
                     {temSaldoPlano ? 'Plano' : `R$ ${Number(s.preco).toFixed(2).replace('.', ',')}`}
                   </span>
                 </div>
                 {s.descricao && (
                   <p className="text-surface-500 font-body text-xs mb-2 line-clamp-2">{s.descricao}</p>
                 )}
-                <div className="flex items-center justify-between gap-2 text-surface-500 text-xs font-body">
+                <div className="flex flex-col gap-2 text-xs font-body text-surface-500 sm:flex-row sm:items-center sm:justify-between">
                   <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {s.duracao} min</span>
                   {beneficio && (
                     <span className={cn(
@@ -182,11 +182,11 @@ function StepBarbeiro({ onSelect }: { onSelect: (b: Barbeiro) => void }) {
       <p className="text-surface-400 font-body text-sm mb-6">Quem vai cuidar de voce hoje?</p>
 
       {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} hasAvatar lines={1} />)}
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {(data ?? []).map(b => (
             <button key={b.id} onClick={() => onSelect(b)}
               className={cn(
@@ -206,7 +206,7 @@ function StepBarbeiro({ onSelect }: { onSelect: (b: Barbeiro) => void }) {
                   </div>
                 )}
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="font-body font-semibold text-surface-100 text-sm">{b.usuario.nome}</p>
                 {(b.especialidades ?? []).length > 0 && (
                   <p className="text-xs text-surface-500 mt-0.5">
@@ -276,7 +276,7 @@ function StepHorario({
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="h-10 rounded-lg bg-surface-800 animate-shimmer" />
           ))}
@@ -288,7 +288,7 @@ function StepHorario({
           <p className="text-surface-600 font-body text-xs mt-1">Tente outro dia.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {horarios.map(hora => (
             <button
               key={hora}
@@ -339,12 +339,12 @@ function StepConfirmar({
       <div className="bg-surface-900 border border-surface-800 rounded-xl overflow-hidden mb-6">
         {items.map((item, i) => (
           <div key={item.label} className={cn(
-            'flex items-center justify-between px-4 py-3 font-body text-sm',
+            'flex flex-col gap-1 px-4 py-3 font-body text-sm sm:flex-row sm:items-center sm:justify-between',
             i < items.length - 1 && 'border-b border-surface-800',
           )}>
             <span className="text-surface-500">{item.label}</span>
             <span className={cn(
-              'font-medium',
+              'break-words font-medium sm:text-right',
               item.label === 'Valor' ? 'text-brand-400' : 'text-surface-100',
             )}>
               {item.value}
@@ -409,7 +409,7 @@ export default function NovoAgendamento() {
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-2xl mx-auto"
+      className="mx-auto w-full max-w-3xl"
     >
       <div className="mb-6">
         <h1 className="text-2xl font-display font-bold text-surface-50">Novo Agendamento</h1>
@@ -418,7 +418,7 @@ export default function NovoAgendamento() {
 
       <StepBar atual={step} />
 
-      <div className="bg-surface-900 border border-surface-800 rounded-xl p-6">
+      <div className="rounded-xl border border-surface-800 bg-surface-900 p-4 shadow-card sm:p-6">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -455,7 +455,7 @@ export default function NovoAgendamento() {
 
         {step > 1 && (
           <div className="mt-6 pt-4 border-t border-surface-800">
-            <Button variant="ghost" size="sm" leftIcon={<ChevronLeft className="w-4 h-4" />} onClick={voltar}>
+            <Button variant="ghost" size="sm" fullWidth leftIcon={<ChevronLeft className="w-4 h-4" />} onClick={voltar} className="sm:w-auto">
               Voltar
             </Button>
           </div>
@@ -464,14 +464,14 @@ export default function NovoAgendamento() {
 
       {/* Resumo lateral do que jÃ¡ foi selecionado */}
       {(servico || barbeiro) && (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex min-w-0 flex-wrap gap-2">
           {servico && (
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-xs font-body text-brand-400">
+            <span className="flex max-w-full items-center gap-1.5 rounded-full border border-brand-500/20 bg-brand-500/10 px-2.5 py-1 text-xs font-body text-brand-400">
               <Scissors className="w-3 h-3" /> {servico.nome}
             </span>
           )}
           {barbeiro && (
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-xs font-body text-brand-400">
+            <span className="flex max-w-full items-center gap-1.5 rounded-full border border-brand-500/20 bg-brand-500/10 px-2.5 py-1 text-xs font-body text-brand-400">
               <User className="w-3 h-3" /> {barbeiro.usuario.nome}
             </span>
           )}

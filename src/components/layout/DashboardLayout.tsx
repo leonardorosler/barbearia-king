@@ -305,11 +305,11 @@ export function DashboardLayout() {
 
       {/* ── Conteúdo principal ───────────────────────────────────────────── */}
       <main className={cn(
-        'flex-1 min-h-screen',
+        'min-w-0 flex-1 min-h-screen',
         'lg:ml-64',           // margem da sidebar desktop
         'pt-14 lg:pt-0',      // padding do header mobile
       )}>
-        <div className="p-4 sm:p-6 lg:p-8">
+        <div className="min-w-0 p-4 sm:p-6 lg:p-8">
           <Outlet />
         </div>
       </main>

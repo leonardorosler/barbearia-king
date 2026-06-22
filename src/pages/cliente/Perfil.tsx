@@ -68,7 +68,7 @@ export default function ClientePerfil() {
   const inicial = usuario?.nome?.charAt(0).toUpperCase() ?? '?'
 
   return (
-    <motion.div initial="hidden" animate="visible" className="max-w-lg mx-auto flex flex-col gap-6">
+    <motion.div initial="hidden" animate="visible" className="mx-auto flex w-full max-w-2xl flex-col gap-6">
 
       <motion.div variants={fadeUp} custom={0}>
         <h1 className="text-2xl font-display font-bold text-surface-50 flex items-center gap-2">
@@ -80,13 +80,13 @@ export default function ClientePerfil() {
       </motion.div>
 
       {/* Avatar */}
-      <motion.div variants={fadeUp} custom={1} className="flex items-center gap-4">
+      <motion.div variants={fadeUp} custom={1} className="flex items-center gap-4 rounded-xl border border-surface-800 bg-surface-900 p-4 shadow-card">
         <div className="w-16 h-16 rounded-full bg-brand-500/15 border-2 border-brand-500/30 flex items-center justify-center">
           <span className="text-2xl font-display font-bold text-brand-400">{inicial}</span>
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="font-display font-semibold text-surface-100">{usuario?.nome}</p>
-          <p className="text-sm font-body text-surface-500">{usuario?.email}</p>
+          <p className="truncate text-sm font-body text-surface-500">{usuario?.email}</p>
           <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-2xs font-body font-semibold bg-brand-500/10 border border-brand-500/20 text-brand-400 uppercase tracking-wider">
             {usuario?.papel === 'CLIENTE' ? 'Cliente' : usuario?.papel}
           </span>
@@ -140,6 +140,8 @@ export default function ClientePerfil() {
               loading={isSubmitting}
               disabled={!isDirty}
               leftIcon={<Save className="w-4 h-4" />}
+              fullWidth
+              className="sm:w-auto"
             >
               Salvar alterações
             </Button>
@@ -161,6 +163,8 @@ export default function ClientePerfil() {
               variant="danger"
               size="md"
               leftIcon={<LogOut className="w-4 h-4" />}
+              fullWidth
+              className="sm:w-auto"
               onClick={logout}
             >
               Sair da conta

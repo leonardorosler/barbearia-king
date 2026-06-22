@@ -51,20 +51,20 @@ export default function ClienteAgendamentos() {
     {
       key: 'servico', header: 'Serviço',
       render: (a) => (
-        <div>
-          <p className="font-medium text-surface-100">{a.servico.nome}</p>
-          <p className="text-xs text-surface-500">com {a.barbeiro.usuario.nome}</p>
+        <div className="min-w-0 max-w-full overflow-hidden">
+          <p className="break-words font-medium text-surface-100">{a.servico.nome}</p>
+          <p className="break-words text-xs text-surface-500">com {a.barbeiro.usuario.nome}</p>
         </div>
       ),
     },
     {
-      key: 'inicio', header: 'Data e hora',
+      key: 'inicio', header: 'Data e hora', mobileLabel: 'Quando',
       render: (a) => (
         <span className="text-surface-300 tabular-nums">{formatDateTime(a.inicio)}</span>
       ),
     },
     {
-      key: 'preco', header: 'Valor', align: 'center',
+      key: 'preco', header: 'Valor', align: 'center', mobileLabel: 'Valor',
       render: (a) => (
         <span className="text-brand-400 font-medium">
           R$ {Number(a.servico.preco).toFixed(2).replace('.', ',')}
@@ -72,8 +72,8 @@ export default function ClienteAgendamentos() {
       ),
     },
     {
-      key: 'status', header: 'Status', align: 'center',
-      render: (a) => <BadgeAgendamento status={a.status} />,
+      key: 'status', header: 'Status', align: 'center', mobileLabel: 'Status',
+      render: (a) => <BadgeAgendamento status={a.status} className="max-w-full" />,
     },
     {
       key: 'acoes', header: '', align: 'right',
@@ -82,7 +82,7 @@ export default function ClienteAgendamentos() {
           variant="ghost" size="sm"
           leftIcon={<X className="w-3.5 h-3.5 text-red-400" />}
           onClick={() => setCancelando(a)}
-          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+          className="max-w-full text-red-400 hover:text-red-300 hover:bg-red-500/10"
         >
           Cancelar
         </Button>
@@ -94,31 +94,33 @@ export default function ClienteAgendamentos() {
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-4xl mx-auto flex flex-col gap-6"
+      className="mx-auto flex w-full max-w-5xl flex-col gap-6"
     >
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-surface-50 flex items-center gap-2">
-            <CalendarDays className="w-5 h-5 text-brand-400" /> Meus Agendamentos
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="flex min-w-0 items-center gap-2 text-2xl font-display font-bold text-surface-50">
+            <CalendarDays className="h-5 w-5 shrink-0 text-brand-400" />
+            <span className="min-w-0 break-words">Meus Agendamentos</span>
           </h1>
           <p className="text-surface-400 font-body text-sm mt-0.5">
             {data?.length ?? 0} agendamento{(data?.length ?? 0) !== 1 ? 's' : ''} no total
           </p>
         </div>
-        <Link to="/cliente/novo-agendamento">
-          <Button variant="primary" size="sm" leftIcon={<CalendarPlus className="w-4 h-4" />}>
+        <Link to="/cliente/novo-agendamento" className="w-full sm:w-auto">
+          <Button variant="primary" size="sm" fullWidth leftIcon={<CalendarPlus className="w-4 h-4" />}>
             Novo
           </Button>
         </Link>
       </div>
 
       {/* Filtros */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="w-full min-w-0 overflow-x-auto">
+        <div className="flex w-max max-w-none gap-2 sm:w-full sm:flex-wrap">
         {FILTROS.map(f => (
           <button
             key={f.value}
             onClick={() => setFiltro(f.value)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-body font-medium border transition-all ${
+            className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-body font-medium transition-all ${
               filtro === f.value
                 ? 'bg-brand-500/15 text-brand-400 border-brand-500/30'
                 : 'bg-surface-900 text-surface-400 border-surface-800 hover:border-surface-700'
@@ -127,6 +129,7 @@ export default function ClienteAgendamentos() {
             {f.label}
           </button>
         ))}
+        </div>
       </div>
 
       <Table
@@ -136,6 +139,7 @@ export default function ClienteAgendamentos() {
         emptyMessage="Nenhum agendamento encontrado."
         emptyIcon={<CalendarDays className="w-8 h-8" />}
         rowKey={a => a.id}
+        className="max-w-full"
       />
 
       {/* Modal confirmar cancelamento */}
