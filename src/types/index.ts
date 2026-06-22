@@ -436,6 +436,11 @@ export interface Dashboard {
   clientesAtivos: number
   assinaturasAtivas: number
   receitaMes: string   // string decimal — usar Number() antes de exibir
+  servicosConcluidosMes: number
+  ticketMedio: string | number
+  clientesRecorrentesMes: number
+  agendamentosPendentes: number
+  horariosVagosHoje: number
   barbeirosRanking: BarbeiroRanking[]
   servicosRanking: ServicoRanking[]
 }

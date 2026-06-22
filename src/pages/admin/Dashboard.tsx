@@ -35,6 +35,10 @@ function formatHora(iso: string) {
   return formatIsoTime(iso)
 }
 
+function formatDataCurta(iso: string) {
+  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+}
+
 interface StatCardProps {
   label: string
   value: string | number
@@ -110,19 +114,26 @@ export default function AdminDashboard() {
     queryFn:  () => api.get<Dashboard>('/dashboard').then(r => r.data),
   })
 
-  const { data: agendamentos, isLoading: loadingAgenda } = useQuery({
+  const { data: agendamentosHoje } = useQuery({
     queryKey: ['admin-agendamentos-hoje'],
     queryFn:  () => api.get<Agendamento[]>('/agendamentos', { params: { data: toDateInputValue() } }).then(r => r.data),
   })
 
+  const { data: agendamentos, isLoading: loadingAgenda } = useQuery({
+    queryKey: ['admin-agendamentos-proximos'],
+    queryFn:  () => api.get<Agendamento[]>('/agendamentos').then(r => r.data),
+  })
+
+  const agora = new Date()
   const proximos = (agendamentos ?? [])
     .filter(a => ['PENDENTE', 'CONFIRMADO'].includes(a.status))
+    .filter(a => new Date(a.inicio) >= agora)
     .sort((a, b) => compareIsoDateTime(a.inicio, b.inicio))
-    .slice(0, 5)
+    .slice(0, 6)
 
-  const confirmadosHoje = (agendamentos ?? []).filter(a => a.status === 'CONFIRMADO').length
-  const pendentesHoje = (agendamentos ?? []).filter(a => a.status === 'PENDENTE').length
-  const concluidosHoje = (agendamentos ?? []).filter(a => a.status === 'CONCLUIDO').length
+  const confirmadosHoje = (agendamentosHoje ?? []).filter(a => a.status === 'CONFIRMADO').length
+  const pendentesHoje = (agendamentosHoje ?? []).filter(a => a.status === 'PENDENTE').length
+  const concluidosHoje = (agendamentosHoje ?? []).filter(a => a.status === 'CONCLUIDO').length
   const dataHoje = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })
 
   const quickActions = [
@@ -170,15 +181,17 @@ export default function AdminDashboard() {
       </motion.div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} lines={2} />)}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} lines={2} />)}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard index={1} highlight label="Receita do mes" value={formatMoeda(dash?.receitaMes ?? 0)} icon={TrendingUp} sub="Faturamento consolidado" />
-          <StatCard index={2} label="Agendamentos hoje" value={dash?.agendamentosHoje ?? 0} icon={CalendarDays} tone="blue" sub={`${dash?.agendamentosMes ?? 0} no mes`} />
-          <StatCard index={3} label="Clientes ativos" value={dash?.clientesAtivos ?? 0} icon={Users} tone="green" sub="Base em atendimento" />
-          <StatCard index={4} label="Assinaturas ativas" value={dash?.assinaturasAtivas ?? 0} icon={CreditCard} tone="amber" sub="Planos recorrentes" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          <StatCard index={1} highlight label="Receita do mes" value={formatMoeda(dash?.receitaMes ?? 0)} icon={TrendingUp} sub="Dinheiro realizado" />
+          <StatCard index={2} label="Servicos concluidos" value={dash?.servicosConcluidosMes ?? 0} icon={PackageCheck} tone="blue" sub="Entregues no mes" />
+          <StatCard index={3} label="Ticket medio" value={formatMoeda(dash?.ticketMedio ?? 0)} icon={CreditCard} tone="green" sub="Valor por atendimento" />
+          <StatCard index={4} label="Clientes recorrentes" value={dash?.clientesRecorrentesMes ?? 0} icon={Users} tone="brand" sub="Voltaram no mes" />
+          <StatCard index={5} label="Horarios vagos hoje" value={dash?.horariosVagosHoje ?? 0} icon={CalendarDays} tone="amber" sub="Slots para vender" />
+          <StatCard index={6} label="Agendamentos pendentes" value={dash?.agendamentosPendentes ?? 0} icon={ClipboardList} tone="blue" sub="Precisam de acao" />
         </div>
       )}
 
@@ -211,13 +224,13 @@ export default function AdminDashboard() {
               <div className="min-w-0">
                 <p className="flex items-center gap-2 text-sm font-body font-semibold text-surface-100">
                   <CalendarDays className="h-4 w-4 shrink-0 text-brand-400" />
-                  <span className="truncate">Agendamentos de hoje</span>
+                  <span className="truncate">Proximos agendamentos</span>
                 </p>
-                <p className="mt-0.5 text-xs font-body text-surface-500">Proximos atendimentos que precisam de acompanhamento.</p>
+                <p className="mt-0.5 text-xs font-body text-surface-500">Alguns atendimentos futuros para acompanhar rapidamente.</p>
               </div>
               <Link to="/admin/agendamentos" className="shrink-0">
                 <Button variant="ghost" size="sm" rightIcon={<ArrowUpRight className="h-3.5 w-3.5" />}>
-                  Ver todos
+                  Ver mais
                 </Button>
               </Link>
             </CardHeader>
@@ -229,7 +242,7 @@ export default function AdminDashboard() {
               ) : proximos.length === 0 ? (
                 <div className="rounded-lg border border-dashed border-surface-800 py-10 text-center">
                   <CalendarDays className="mx-auto mb-3 h-8 w-8 text-surface-700" />
-                  <p className="text-sm font-body text-surface-400">Nenhum agendamento para hoje.</p>
+                  <p className="text-sm font-body text-surface-400">Nenhum agendamento futuro encontrado.</p>
                 </div>
               ) : (
                 <div className="flex min-w-0 flex-col gap-3">
@@ -241,7 +254,7 @@ export default function AdminDashboard() {
                       <div className="flex shrink-0 items-center gap-3 sm:w-24">
                         <div className="flex h-12 w-12 flex-col items-center justify-center rounded-lg border border-brand-500/20 bg-brand-500/10">
                           <span className="text-sm font-display font-bold leading-none text-brand-300">{formatHora(ag.inicio)}</span>
-                          <span className="mt-1 text-[10px] font-body uppercase text-brand-400/70">inicio</span>
+                          <span className="mt-1 text-[10px] font-body uppercase text-brand-400/70">{formatDataCurta(ag.inicio)}</span>
                         </div>
                       </div>
 
