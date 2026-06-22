@@ -1,14 +1,26 @@
+import type { ComponentType } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
-  CalendarDays, Users, CreditCard, TrendingUp,
-  Scissors, Crown, BarChart3,
+  ArrowUpRight,
+  BarChart3,
+  CalendarDays,
+  ChevronRight,
+  ClipboardList,
+  CreditCard,
+  Crown,
+  PackageCheck,
+  Scissors,
+  Settings,
+  TrendingUp,
+  Users,
 } from 'lucide-react'
 import { api } from '@/services/api'
-import { Card, CardBody, CardHeader, SkeletonCard, BadgeAgendamento } from '@/components/ui'
+import { BadgeAgendamento, Button, Card, CardBody, CardHeader, SkeletonCard } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import { compareIsoDateTime, formatIsoTime, toDateInputValue } from '@/lib/date'
-import type { Dashboard, Agendamento } from '@/types'
+import type { Agendamento, Dashboard } from '@/types'
 
 const fadeUp = {
   hidden:  { opacity: 0, y: 20 },
@@ -18,56 +30,77 @@ const fadeUp = {
 function formatMoeda(valor: string | number) {
   return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
+
 function formatHora(iso: string) {
   return formatIsoTime(iso)
 }
-// function formatData(iso: string) {
-//   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-// }
 
 interface StatCardProps {
   label: string
   value: string | number
-  icon: React.ComponentType<{ className?: string }>
+  icon: ComponentType<{ className?: string }>
   sub?: string
+  tone?: 'brand' | 'green' | 'blue' | 'amber'
   highlight?: boolean
   index: number
 }
 
-function StatCard({ label, value, icon: Icon, sub, highlight, index }: StatCardProps) {
+const toneStyles = {
+  brand: 'bg-brand-500/10 border-brand-500/20 text-brand-400',
+  green: 'bg-green-500/10 border-green-500/20 text-green-400',
+  blue:  'bg-blue-500/10 border-blue-500/20 text-blue-400',
+  amber: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+}
+
+function StatCard({ label, value, icon: Icon, sub, tone = 'brand', highlight, index }: StatCardProps) {
   return (
-    <motion.div variants={fadeUp} custom={index}
+    <motion.div
+      variants={fadeUp}
+      custom={index}
       className={cn(
-        'relative overflow-hidden rounded-xl border p-5',
+        'relative min-w-0 overflow-hidden rounded-xl border p-4 sm:p-5',
         highlight
-          ? 'bg-brand-gradient border-brand-400/30'
-          : 'bg-surface-900 border-surface-800',
+          ? 'border-brand-400/30 bg-brand-gradient shadow-brand'
+          : 'border-surface-800 bg-surface-900 shadow-card',
       )}
     >
       {highlight && <div className="absolute inset-0 bg-hero-pattern opacity-10" />}
-      <div className="relative z-10 flex items-start justify-between">
-        <div>
-          <p className={cn('text-xs font-body font-semibold uppercase tracking-wider mb-2',
-            highlight ? 'text-white/70' : 'text-surface-500')}>
+      <div className="relative z-10 flex min-w-0 items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className={cn(
+            'mb-2 truncate text-xs font-body font-semibold uppercase tracking-wider',
+            highlight ? 'text-white/70' : 'text-surface-500',
+          )}>
             {label}
           </p>
-          <p className={cn('text-3xl font-display font-black',
-            highlight ? 'text-white' : 'text-surface-50')}>
+          <p className={cn(
+            'truncate text-2xl font-display font-black leading-tight sm:text-3xl',
+            highlight ? 'text-white' : 'text-surface-50',
+          )}>
             {value}
           </p>
           {sub && (
-            <p className={cn('text-xs font-body mt-1',
-              highlight ? 'text-white/60' : 'text-surface-500')}>
+            <p className={cn('mt-1 truncate text-xs font-body', highlight ? 'text-white/65' : 'text-surface-500')}>
               {sub}
             </p>
           )}
         </div>
-        <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center',
-          highlight ? 'bg-white/20' : 'bg-brand-500/10 border border-brand-500/20')}>
-          <Icon className={cn('w-5 h-5', highlight ? 'text-white' : 'text-brand-400')} />
+        <div className={cn(
+          'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border',
+          highlight ? 'border-white/20 bg-white/20 text-white' : toneStyles[tone],
+        )}>
+          <Icon className="h-5 w-5" />
         </div>
       </div>
     </motion.div>
+  )
+}
+
+function RankingEmpty({ label }: { label: string }) {
+  return (
+    <div className="rounded-lg border border-dashed border-surface-800 px-4 py-6 text-center">
+      <p className="text-sm font-body text-surface-500">{label}</p>
+    </div>
   )
 }
 
@@ -77,7 +110,7 @@ export default function AdminDashboard() {
     queryFn:  () => api.get<Dashboard>('/dashboard').then(r => r.data),
   })
 
-  const { data: agendamentos } = useQuery({
+  const { data: agendamentos, isLoading: loadingAgenda } = useQuery({
     queryKey: ['admin-agendamentos-hoje'],
     queryFn:  () => api.get<Agendamento[]>('/agendamentos', { params: { data: toDateInputValue() } }).then(r => r.data),
   })
@@ -87,55 +120,143 @@ export default function AdminDashboard() {
     .sort((a, b) => compareIsoDateTime(a.inicio, b.inicio))
     .slice(0, 5)
 
+  const confirmadosHoje = (agendamentos ?? []).filter(a => a.status === 'CONFIRMADO').length
+  const pendentesHoje = (agendamentos ?? []).filter(a => a.status === 'PENDENTE').length
+  const concluidosHoje = (agendamentos ?? []).filter(a => a.status === 'CONCLUIDO').length
+  const dataHoje = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })
+
+  const quickActions = [
+    { label: 'Agendamentos', to: '/admin/agendamentos', icon: CalendarDays, tone: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
+    { label: 'Barbeiros', to: '/admin/barbeiros', icon: Scissors, tone: 'text-brand-400 bg-brand-500/10 border-brand-500/20' },
+    { label: 'Clientes', to: '/admin/clientes', icon: Users, tone: 'text-green-400 bg-green-500/10 border-green-500/20' },
+    { label: 'Servicos', to: '/admin/servicos', icon: PackageCheck, tone: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+    { label: 'Planos', to: '/admin/planos', icon: CreditCard, tone: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
+    { label: 'Ajustes', to: '/admin/configuracoes', icon: Settings, tone: 'text-surface-300 bg-surface-800 border-surface-700' },
+  ]
+
   return (
-    <motion.div initial="hidden" animate="visible" className="max-w-6xl mx-auto flex flex-col gap-6">
-      <motion.div variants={fadeUp} custom={0}>
-        <h1 className="text-2xl font-display font-bold text-surface-50">Dashboard</h1>
-        <p className="text-surface-400 font-body text-sm mt-0.5">
-          Visão geral de {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}
-        </p>
+    <motion.div initial="hidden" animate="visible" className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+      <motion.div
+        variants={fadeUp}
+        custom={0}
+        className="relative overflow-hidden rounded-xl border border-surface-800 bg-surface-900 p-5 shadow-card sm:p-6"
+      >
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-400/60 to-transparent" />
+        <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="min-w-0">
+            <p className="mb-2 inline-flex items-center gap-2 rounded-md border border-brand-500/20 bg-brand-500/10 px-2.5 py-1 text-xs font-body font-semibold uppercase tracking-wider text-brand-300">
+              <BarChart3 className="h-3.5 w-3.5" />
+              Visao administrativa
+            </p>
+            <h1 className="text-2xl font-display font-bold text-surface-50 sm:text-3xl">Dashboard</h1>
+            <p className="mt-1 max-w-2xl text-sm font-body text-surface-400">
+              Acompanhe agenda, receita, clientes e desempenho da barbearia em {dataHoje}.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 rounded-lg border border-surface-800 bg-surface-950/60 p-2 sm:min-w-[360px]">
+            {[
+              { label: 'Pendentes', value: pendentesHoje },
+              { label: 'Confirmados', value: confirmadosHoje },
+              { label: 'Concluidos', value: concluidosHoje },
+            ].map(item => (
+              <div key={item.label} className="min-w-0 rounded-md bg-surface-900 px-3 py-2 text-center">
+                <p className="truncate text-lg font-display font-black text-surface-50">{item.value}</p>
+                <p className="truncate text-[11px] font-body text-surface-500">{item.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </motion.div>
 
-      {/* Stats */}
       {isLoading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} lines={2} />)}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard index={1} highlight label="Receita do mês" value={formatMoeda(dash?.receitaMes ?? 0)} icon={TrendingUp} />
-          <StatCard index={2} label="Agendamentos hoje" value={dash?.agendamentosHoje ?? 0} icon={CalendarDays} sub={`${dash?.agendamentosMes ?? 0} no mês`} />
-          <StatCard index={3} label="Clientes ativos" value={dash?.clientesAtivos ?? 0} icon={Users} />
-          <StatCard index={4} label="Assinaturas ativas" value={dash?.assinaturasAtivas ?? 0} icon={CreditCard} />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard index={1} highlight label="Receita do mes" value={formatMoeda(dash?.receitaMes ?? 0)} icon={TrendingUp} sub="Faturamento consolidado" />
+          <StatCard index={2} label="Agendamentos hoje" value={dash?.agendamentosHoje ?? 0} icon={CalendarDays} tone="blue" sub={`${dash?.agendamentosMes ?? 0} no mes`} />
+          <StatCard index={3} label="Clientes ativos" value={dash?.clientesAtivos ?? 0} icon={Users} tone="green" sub="Base em atendimento" />
+          <StatCard index={4} label="Assinaturas ativas" value={dash?.assinaturasAtivas ?? 0} icon={CreditCard} tone="amber" sub="Planos recorrentes" />
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Agendamentos de hoje */}
-        <motion.div variants={fadeUp} custom={5} className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <p className="text-sm font-body font-semibold text-surface-100 flex items-center gap-2">
-                <CalendarDays className="w-4 h-4 text-brand-400" /> Agendamentos de hoje
-              </p>
-            </CardHeader>
-            <CardBody>
-              {proximos.length === 0 ? (
-                <p className="text-surface-500 font-body text-sm text-center py-6">
-                  Nenhum agendamento para hoje.
+      <motion.div variants={fadeUp} custom={5}>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {quickActions.map(action => {
+            const Icon = action.icon
+            return (
+              <Link key={action.to} to={action.to} className="group min-w-0">
+                <div className="flex h-full min-w-0 items-center gap-3 rounded-xl border border-surface-800 bg-surface-900 p-3 shadow-card transition-all duration-200 hover:border-surface-700 hover:bg-surface-800">
+                  <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border', action.tone)}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-body font-semibold text-surface-100">{action.label}</p>
+                    <p className="truncate text-xs font-body text-surface-500">Gerenciar</p>
+                  </div>
+                  <ChevronRight className="hidden h-4 w-4 shrink-0 text-surface-600 transition-transform group-hover:translate-x-0.5 sm:block" />
+                </div>
+              </Link>
+            )
+          })}
+        </div>
+      </motion.div>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
+        <motion.div variants={fadeUp} custom={6} className="min-w-0">
+          <Card className="min-w-0 overflow-hidden">
+            <CardHeader className="flex flex-col gap-3 px-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+              <div className="min-w-0">
+                <p className="flex items-center gap-2 text-sm font-body font-semibold text-surface-100">
+                  <CalendarDays className="h-4 w-4 shrink-0 text-brand-400" />
+                  <span className="truncate">Agendamentos de hoje</span>
                 </p>
-              ) : (
+                <p className="mt-0.5 text-xs font-body text-surface-500">Proximos atendimentos que precisam de acompanhamento.</p>
+              </div>
+              <Link to="/admin/agendamentos" className="shrink-0">
+                <Button variant="ghost" size="sm" rightIcon={<ArrowUpRight className="h-3.5 w-3.5" />}>
+                  Ver todos
+                </Button>
+              </Link>
+            </CardHeader>
+            <CardBody className="p-4 sm:p-5">
+              {loadingAgenda ? (
                 <div className="flex flex-col gap-3">
+                  {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} hasAvatar lines={1} />)}
+                </div>
+              ) : proximos.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-surface-800 py-10 text-center">
+                  <CalendarDays className="mx-auto mb-3 h-8 w-8 text-surface-700" />
+                  <p className="text-sm font-body text-surface-400">Nenhum agendamento para hoje.</p>
+                </div>
+              ) : (
+                <div className="flex min-w-0 flex-col gap-3">
                   {proximos.map(ag => (
-                    <div key={ag.id} className="flex items-center gap-3 py-2 border-b border-surface-800 last:border-0">
-                      <div className="w-9 h-9 rounded-lg bg-brand-500/10 flex items-center justify-center shrink-0">
-                        <span className="text-xs font-display font-bold text-brand-400">{formatHora(ag.inicio)}</span>
+                    <div
+                      key={ag.id}
+                      className="flex min-w-0 flex-col gap-3 rounded-xl border border-surface-800 bg-surface-950/40 p-3 sm:flex-row sm:items-center sm:p-4"
+                    >
+                      <div className="flex shrink-0 items-center gap-3 sm:w-24">
+                        <div className="flex h-12 w-12 flex-col items-center justify-center rounded-lg border border-brand-500/20 bg-brand-500/10">
+                          <span className="text-sm font-display font-bold leading-none text-brand-300">{formatHora(ag.inicio)}</span>
+                          <span className="mt-1 text-[10px] font-body uppercase text-brand-400/70">inicio</span>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-body font-medium text-surface-100 truncate">{ag.cliente.usuario.nome}</p>
-                        <p className="text-xs text-surface-500">{ag.servico.nome} · {ag.barbeiro.usuario.nome}</p>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-body font-semibold text-surface-100">{ag.cliente.usuario.nome}</p>
+                        <div className="mt-1 flex min-w-0 flex-col gap-1 text-xs font-body text-surface-500 sm:flex-row sm:items-center sm:gap-2">
+                          <span className="min-w-0 truncate">{ag.servico.nome}</span>
+                          <span className="hidden text-surface-700 sm:inline">/</span>
+                          <span className="min-w-0 truncate">com {ag.barbeiro.usuario.nome}</span>
+                        </div>
                       </div>
-                      <BadgeAgendamento status={ag.status} />
+
+                      <div className="self-start sm:self-center">
+                        <BadgeAgendamento status={ag.status} />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -144,29 +265,33 @@ export default function AdminDashboard() {
           </Card>
         </motion.div>
 
-        {/* Rankings */}
-        <motion.div variants={fadeUp} custom={6} className="flex flex-col gap-4">
-          {/* Top barbeiros */}
-          <Card>
-            <CardHeader>
-              <p className="text-sm font-body font-semibold text-surface-100 flex items-center gap-2">
-                <Crown className="w-4 h-4 text-brand-400" /> Top Barbeiros
+        <motion.div variants={fadeUp} custom={7} className="flex min-w-0 flex-col gap-6">
+          <Card className="min-w-0 overflow-hidden">
+            <CardHeader className="px-4 sm:px-5">
+              <p className="flex items-center gap-2 text-sm font-body font-semibold text-surface-100">
+                <Crown className="h-4 w-4 text-brand-400" />
+                Top barbeiros
               </p>
             </CardHeader>
-            <CardBody>
-              {isLoading ? <SkeletonCard lines={3} /> : (
-                <div className="flex flex-col gap-2">
+            <CardBody className="p-4 sm:p-5">
+              {isLoading ? <SkeletonCard lines={3} /> : (dash?.barbeirosRanking ?? []).length === 0 ? (
+                <RankingEmpty label="Sem dados de barbeiros ainda." />
+              ) : (
+                <div className="flex min-w-0 flex-col gap-3">
                   {(dash?.barbeirosRanking ?? []).slice(0, 4).map((item, i) => (
-                    <div key={item.barbeiro.id} className="flex items-center gap-2">
-                      <span className="text-xs font-display font-bold text-surface-600 w-4">{i + 1}</span>
-                      <div className="w-6 h-6 rounded-full bg-surface-800 flex items-center justify-center shrink-0">
-                        {item.barbeiro.foto
-                          ? <img src={item.barbeiro.foto} className="w-full h-full rounded-full object-cover" />
-                          : <Scissors className="w-3 h-3 text-surface-500" />
-                        }
+                    <div key={item.barbeiro.id} className="flex min-w-0 items-center gap-3 rounded-lg border border-surface-800 bg-surface-950/40 p-3">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-surface-800 text-xs font-display font-bold text-surface-400">
+                        {i + 1}
+                      </span>
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-800">
+                        {item.barbeiro.foto ? (
+                          <img src={item.barbeiro.foto} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <Scissors className="h-4 w-4 text-surface-500" />
+                        )}
                       </div>
-                      <p className="text-xs font-body text-surface-300 flex-1 truncate">{item.barbeiro.usuario.nome}</p>
-                      <span className="text-xs font-body font-semibold text-brand-400">{item.total}</span>
+                      <p className="min-w-0 flex-1 truncate text-sm font-body font-medium text-surface-200">{item.barbeiro.usuario.nome}</p>
+                      <span className="shrink-0 rounded-md bg-brand-500/10 px-2 py-1 text-xs font-body font-semibold text-brand-400">{item.total}</span>
                     </div>
                   ))}
                 </div>
@@ -174,21 +299,23 @@ export default function AdminDashboard() {
             </CardBody>
           </Card>
 
-          {/* Top serviços */}
-          <Card>
-            <CardHeader>
-              <p className="text-sm font-body font-semibold text-surface-100 flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-brand-400" /> Top Serviços
+          <Card className="min-w-0 overflow-hidden">
+            <CardHeader className="px-4 sm:px-5">
+              <p className="flex items-center gap-2 text-sm font-body font-semibold text-surface-100">
+                <ClipboardList className="h-4 w-4 text-brand-400" />
+                Top servicos
               </p>
             </CardHeader>
-            <CardBody>
-              {isLoading ? <SkeletonCard lines={3} /> : (
-                <div className="flex flex-col gap-2">
-                  {(dash?.servicosRanking ?? []).slice(0, 4).map((item, i) => (
-                    <div key={item.servico.id} className="flex items-center gap-2">
-                      <span className="text-xs font-display font-bold text-surface-600 w-4">{i + 1}</span>
-                      <p className="text-xs font-body text-surface-300 flex-1 truncate">{item.servico.nome}</p>
-                      <span className="text-xs font-body font-semibold text-brand-400">{item.total}</span>
+            <CardBody className="p-4 sm:p-5">
+              {isLoading ? <SkeletonCard lines={3} /> : (dash?.servicosRanking ?? []).length === 0 ? (
+                <RankingEmpty label="Sem dados de servicos ainda." />
+              ) : (
+                <div className="flex min-w-0 flex-col gap-2">
+                  {(dash?.servicosRanking ?? []).slice(0, 5).map((item, i) => (
+                    <div key={item.servico.id} className="flex min-w-0 items-center gap-3 rounded-lg px-2 py-2 hover:bg-surface-800/50">
+                      <span className="w-5 shrink-0 text-xs font-display font-bold text-surface-600">{i + 1}</span>
+                      <p className="min-w-0 flex-1 truncate text-sm font-body text-surface-300">{item.servico.nome}</p>
+                      <span className="shrink-0 text-xs font-body font-semibold text-brand-400">{item.total}</span>
                     </div>
                   ))}
                 </div>
