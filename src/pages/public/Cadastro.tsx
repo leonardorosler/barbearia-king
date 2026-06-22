@@ -131,7 +131,7 @@ export default function Cadastro() {
           </Link>
 
           <div className="mb-8 flex items-center gap-4">
-            <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-md border border-white/10 bg-white/95 p-2 shadow-2xl shadow-black/30">
+            <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-md border border-white/10 bg-surface-950 p-2 shadow-2xl shadow-black/30">
               <img src="/logoking.png" alt="" className="h-full w-full object-contain" />
             </span>
             <div>
@@ -175,7 +175,7 @@ export default function Cadastro() {
           <div className="border border-white/10 bg-surface-950/88 p-5 shadow-2xl shadow-black/35 backdrop-blur-md sm:p-7">
             <div className="mb-7 flex items-center justify-between gap-4">
               <Link to="/" className="flex min-w-0 items-center gap-3">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white p-1.5">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-surface-950 p-1.5">
                   <img src="/logoking.png" alt="" className="h-full w-full object-contain" />
                 </span>
                 <span className="min-w-0">
