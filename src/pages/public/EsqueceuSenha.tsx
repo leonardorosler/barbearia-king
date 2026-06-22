@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Mail, ArrowLeft, Scissors } from 'lucide-react'
-import { api } from '@/services/api'
+import { publicApi } from '@/services/api'
 import { useBarbearia } from '@/contexts/BarbeariaContext'
 import { useToast } from '@/components/ui/Toast'
 import { Button, Input } from '@/components/ui'
@@ -25,7 +25,7 @@ export default function EsqueceuSenha() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      await api.post('/auth/esqueceu-senha', data)
+      await publicApi.post('/auth/esqueceu-senha', data)
       setEnviado(true)
       success('E-mail enviado!', 'Verifique sua caixa de entrada.')
     } catch {

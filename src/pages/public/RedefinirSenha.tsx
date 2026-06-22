@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, KeyRound, ArrowLeft, CheckCircle2 } from 'lucide-react'
-import { api } from '@/services/api'
+import { publicApi } from '@/services/api'
 import { useToast } from '@/components/ui/Toast'
 import { Button, Input } from '@/components/ui'
 
@@ -23,6 +23,15 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>
 
+function getResetToken(searchParams: URLSearchParams) {
+  const token = searchParams.get('token') ?? searchParams.get('t')
+
+  if (token) return token
+
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#\/?/, ''))
+  return hashParams.get('token') ?? hashParams.get('t') ?? ''
+}
+
 export default function RedefinirSenha() {
   const [searchParams]  = useSearchParams()
   const { error }       = useToast()
@@ -30,7 +39,7 @@ export default function RedefinirSenha() {
   const [showNova, setShowNova]         = useState(false)
   const [showConfirmar, setShowConfirmar] = useState(false)
 
-  const token = searchParams.get('token') ?? ''
+  const token = getResetToken(searchParams)
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } =
     useForm<FormData>({ resolver: zodResolver(schema) })
@@ -41,7 +50,7 @@ export default function RedefinirSenha() {
       return
     }
     try {
-      await api.post('/auth/redefinir-senha', { token, novaSenha: data.novaSenha })
+      await publicApi.post('/auth/redefinir-senha', { token, novaSenha: data.novaSenha })
       setOk(true)
     } catch {
       error('Link expirado', 'Solicite um novo link de redefinição.')

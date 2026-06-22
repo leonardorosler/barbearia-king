@@ -5,7 +5,7 @@ import {
   useState,
   ReactNode,
 } from 'react'
-import { api, storage } from '@/services/api'
+import { publicApi, storage } from '@/services/api'
 import type { Barbearia } from '@/types'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -45,7 +45,7 @@ export function BarbeariaProvider({ children }: BarbeariaProviderProps) {
       return
     }
 
-    api
+    publicApi
       .get<Barbearia>(`/barbearia/slug/${slug}`)
       .then(({ data }) => {
         // Persiste o id para o interceptor de request injetar x-barbearia-id

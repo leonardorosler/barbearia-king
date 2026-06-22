@@ -370,6 +370,26 @@ export interface Assinatura {
   atualizadoEm: string
 }
 
+
+export interface PlanoUtilizacaoServico {
+  assinaturaId: string
+  servicoId: string
+  nome: string
+  duracao: number
+  limite: number
+  usados: number
+  reservados: number
+  disponiveis: number
+  cobertoPeloPlano: boolean
+}
+
+export interface PlanoUtilizacao {
+  assinaturaId: string
+  plano: Pick<Plano, 'id' | 'nome'>
+  status: StatusAssinatura
+  periodo: { inicio: string; fim: string }
+  servicos: PlanoUtilizacaoServico[]
+}
 export interface CriarAssinaturaInput {
   planoId: string
 }

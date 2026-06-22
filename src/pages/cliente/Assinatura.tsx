@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { AlertCircle, CalendarDays, CreditCard, Check } from 'lucide-react'
 import { api } from '@/services/api'
 import { Button, Card, CardBody, CardHeader, CardFooter, BadgeAssinatura, SkeletonCard } from '@/components/ui'
-import type { Assinatura } from '@/types'
+import type { Assinatura, PlanoUtilizacao } from '@/types'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -19,6 +19,11 @@ export default function ClienteAssinatura() {
   const { data: assinatura, isLoading } = useQuery({
     queryKey: ['cliente-assinatura'],
     queryFn: () => api.get<Assinatura[]>('/assinaturas/minhas').then(r => r.data[0] ?? null).catch(() => null),
+  })
+
+  const { data: utilizacao } = useQuery({
+    queryKey: ['cliente-plano-utilizacao'],
+    queryFn: () => api.get<PlanoUtilizacao | null>('/assinaturas/minha/utilizacao').then(r => r.data).catch(() => null),
   })
 
   if (isLoading) {
@@ -58,7 +63,7 @@ export default function ClienteAssinatura() {
 
               <p className="text-3xl font-display font-black text-gradient-brand mt-3">
                 R$ {Number(assinatura.plano.preco).toFixed(2).replace('.', ',')}
-                <span className="text-sm font-body text-surface-500 font-normal ml-1">/mês</span>
+                <span className="text-sm font-body text-surface-500 font-normal ml-1">/mes</span>
               </p>
 
               <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-surface-800 bg-surface-900 px-3 py-1 text-xs font-body text-surface-400">
@@ -77,16 +82,28 @@ export default function ClienteAssinatura() {
               {assinatura.plano.planosServicos.length > 0 && (
                 <div>
                   <p className="text-xs font-body font-semibold text-surface-500 uppercase tracking-wider mb-3">
-                    Serviços inclusos
+                    Servicos inclusos
                   </p>
                   <ul className="flex flex-col gap-2">
-                    {assinatura.plano.planosServicos.map(ps => (
-                      <li key={ps.servico.id} className="flex items-center gap-2.5 text-sm font-body text-surface-300">
-                        <Check className="w-4 h-4 text-brand-400 shrink-0" />
-                        {ps.quantidade}× {ps.servico.nome}
-                        <span className="text-surface-600">({ps.servico.duracao}min)</span>
-                      </li>
-                    ))}
+                    {assinatura.plano.planosServicos.map(ps => {
+                      const saldo = utilizacao?.servicos.find(item => item.servicoId === ps.servico.id)
+
+                      return (
+                        <li key={ps.servico.id} className="flex flex-col gap-2 rounded-lg border border-surface-800 bg-surface-900 p-3 text-sm font-body text-surface-300">
+                          <div className="flex items-center gap-2.5">
+                            <Check className="w-4 h-4 text-brand-400 shrink-0" />
+                            <span className="font-medium text-surface-100">{ps.servico.nome}</span>
+                            <span className="text-surface-600">({ps.servico.duracao}min)</span>
+                          </div>
+                          <div className="flex flex-wrap gap-2 pl-6 text-xs text-surface-500">
+                            <span>{saldo?.disponiveis ?? ps.quantidade} disponiveis</span>
+                            <span>{saldo?.usados ?? 0} usados</span>
+                            <span>{saldo?.reservados ?? 0} reservados</span>
+                            <span>limite {ps.quantidade}/mes</span>
+                          </div>
+                        </li>
+                      )
+                    })}
                   </ul>
                 </div>
               )}
@@ -104,7 +121,7 @@ export default function ClienteAssinatura() {
               <div className="flex items-start gap-2 mt-4 p-3 rounded-lg bg-surface-900 border border-surface-800">
                 <AlertCircle className="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
                 <p className="text-xs font-body text-surface-400">
-                  Se precisar trocar de plano, fale com o admin da barbearia. Aqui você acompanha apenas o plano atual.
+                  Se precisar trocar de plano, fale com o admin da barbearia. Aqui voce acompanha apenas o plano atual.
                 </p>
               </div>
             </CardFooter>
@@ -122,7 +139,7 @@ export default function ClienteAssinatura() {
                   <p className="text-lg font-display font-bold text-surface-50">Nenhum plano atribuído</p>
                   <p className="text-sm font-body text-surface-400 mt-1">
                     O plano da sua conta será definido pela equipe da barbearia.
-                    Enquanto isso, você pode continuar usando o app para agendar horários.
+                    Enquanto isso, voce pode continuar usando o app para agendar horários.
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">

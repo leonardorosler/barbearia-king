@@ -1,29 +1,29 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, ChevronLeft, Scissors, User, Calendar, Clock } from 'lucide-react'
+import { Check, ChevronLeft, Scissors, User, Calendar, Clock, Sparkles } from 'lucide-react'
 import { api } from '@/services/api'
 import { Button, SkeletonCard } from '@/components/ui'
 import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils'
 import { formatIsoDateLong, formatIsoTime, toDateInputValue } from '@/lib/date'
-import type { Servico, Barbeiro, HorarioDisponivel } from '@/types'
+import type { Servico, Barbeiro, HorarioDisponivel, PlanoUtilizacao, Assinatura } from '@/types'
 
 function barbeiroEstaAtivo(barbeiro: Barbeiro) {
   return barbeiro.usuario.ativo ?? barbeiro.ativo ?? true
 }
 
-// ─── Steps ───────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Steps â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const STEPS = [
-  { id: 1, label: 'Serviço',  icon: Scissors  },
+  { id: 1, label: 'ServiÃ§o',  icon: Scissors  },
   { id: 2, label: 'Barbeiro', icon: User       },
-  { id: 3, label: 'Horário',  icon: Calendar   },
+  { id: 3, label: 'HorÃ¡rio',  icon: Calendar   },
   { id: 4, label: 'Confirmar',icon: Check      },
 ]
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function toDateInput(date: Date) {
   return toDateInputValue(date)
@@ -51,7 +51,7 @@ function addMinutesToDateTime(data: string, hora: string, minutos: number) {
   return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}:00`
 }
 
-// ─── Barra de progresso ───────────────────────────────────────────────────────
+// â”€â”€â”€ Barra de progresso â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function StepBar({ atual }: { atual: number }) {
   return (
@@ -94,9 +94,17 @@ function StepBar({ atual }: { atual: number }) {
   )
 }
 
-// ─── Step 1: Serviço ──────────────────────────────────────────────────────────
+// â”€â”€â”€ Step 1: ServiÃ§o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-function StepServico({ onSelect }: { onSelect: (s: Servico) => void }) {
+function StepServico({
+  utilizacao,
+  assinatura,
+  onSelect,
+}: {
+  utilizacao: PlanoUtilizacao | null | undefined
+  assinatura: Assinatura | null | undefined
+  onSelect: (s: Servico) => void
+}) {
   const { data, isLoading } = useQuery({
     queryKey: ['servicos-ag'],
     queryFn:  () => api.get<Servico[]>('/servicos').then(r => r.data.filter(s => s.ativo)),
@@ -104,8 +112,8 @@ function StepServico({ onSelect }: { onSelect: (s: Servico) => void }) {
 
   return (
     <div>
-      <h2 className="text-xl font-display font-bold text-surface-50 mb-1">Escolha o serviço</h2>
-      <p className="text-surface-400 font-body text-sm mb-6">Selecione o que você deseja realizar.</p>
+      <h2 className="text-xl font-display font-bold text-surface-50 mb-1">Escolha o servico</h2>
+      <p className="text-surface-400 font-body text-sm mb-6">Selecione o que voce deseja realizar.</p>
 
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -113,38 +121,55 @@ function StepServico({ onSelect }: { onSelect: (s: Servico) => void }) {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {(data ?? []).map(s => (
-            <button key={s.id} onClick={() => onSelect(s)}
-              className={cn(
-                'group text-left p-4 rounded-xl border transition-all duration-200',
-                'bg-surface-900 border-surface-800',
-                'hover:border-brand-500/50 hover:shadow-brand',
-              )}
-            >
-              <div className="flex items-start justify-between mb-2">
-                <p className="font-display font-semibold text-surface-50 group-hover:text-brand-300 transition-colors">
-                  {s.nome}
-                </p>
-                <span className="text-brand-400 font-bold font-body text-sm shrink-0 ml-2">
-                  R$ {Number(s.preco).toFixed(2).replace('.', ',')}
-                </span>
-              </div>
-              {s.descricao && (
-                <p className="text-surface-500 font-body text-xs mb-2 line-clamp-2">{s.descricao}</p>
-              )}
-              <div className="flex items-center gap-1 text-surface-500 text-xs font-body">
-                <Clock className="w-3 h-3" /> {s.duracao} min
-              </div>
-            </button>
-          ))}
+          {(data ?? []).map(s => {
+            const beneficio = utilizacao?.servicos.find(item => item.servicoId === s.id)
+            const servicoNoPlano = !!beneficio || !!assinatura?.plano.planosServicos.some(item => item.servico.id === s.id)
+            const temSaldoPlano = !!beneficio && beneficio.disponiveis > 0
+
+            return (
+              <button key={s.id} onClick={() => onSelect(s)}
+                className={cn(
+                  'group relative overflow-hidden text-left p-4 rounded-xl border transition-all duration-200',
+                  servicoNoPlano ? 'bg-surface-900 border-brand-500/50' : 'bg-surface-900 border-surface-800',
+                  'hover:border-brand-500/50 hover:shadow-brand',
+                )}
+              >
+                {servicoNoPlano && (
+                  <span className="absolute right-2 top-2 rounded-full bg-brand-500 px-2 py-0.5 text-[10px] font-bold uppercase leading-none text-surface-950 shadow-[0_0_12px_rgba(245,158,11,0.35)]">
+                    Plano
+                  </span>
+                )}
+                <div className={cn('flex items-start justify-between gap-2 mb-2', servicoNoPlano && 'pr-16')}>
+                  <p className="font-display font-semibold text-surface-50 group-hover:text-brand-300 transition-colors">
+                    {s.nome}
+                  </p>
+                  <span className="text-brand-400 font-bold font-body text-sm shrink-0 ml-2">
+                    {temSaldoPlano ? 'Plano' : `R$ ${Number(s.preco).toFixed(2).replace('.', ',')}`}
+                  </span>
+                </div>
+                {s.descricao && (
+                  <p className="text-surface-500 font-body text-xs mb-2 line-clamp-2">{s.descricao}</p>
+                )}
+                <div className="flex items-center justify-between gap-2 text-surface-500 text-xs font-body">
+                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {s.duracao} min</span>
+                  {beneficio && (
+                    <span className={cn(
+                      'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-medium',
+                      temSaldoPlano ? 'border-brand-500/30 bg-brand-500/10 text-brand-400' : 'border-surface-700 bg-surface-800 text-surface-500',
+                    )}>
+                      <Sparkles className="w-3 h-3" />
+                      {beneficio.disponiveis} de {beneficio.limite}
+                    </span>
+                  )}
+                </div>
+              </button>
+            )
+          })}
         </div>
       )}
     </div>
   )
 }
-
-// ─── Step 2: Barbeiro ─────────────────────────────────────────────────────────
-
 function StepBarbeiro({ onSelect }: { onSelect: (b: Barbeiro) => void }) {
   const { data, isLoading } = useQuery({
     queryKey: ['barbeiros-ag'],
@@ -154,7 +179,7 @@ function StepBarbeiro({ onSelect }: { onSelect: (b: Barbeiro) => void }) {
   return (
     <div>
       <h2 className="text-xl font-display font-bold text-surface-50 mb-1">Escolha o barbeiro</h2>
-      <p className="text-surface-400 font-body text-sm mb-6">Quem vai cuidar de você hoje?</p>
+      <p className="text-surface-400 font-body text-sm mb-6">Quem vai cuidar de voce hoje?</p>
 
       {isLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -197,7 +222,7 @@ function StepBarbeiro({ onSelect }: { onSelect: (b: Barbeiro) => void }) {
   )
 }
 
-// ─── Step 3: Horário ──────────────────────────────────────────────────────────
+// â”€â”€â”€ Step 3: HorÃ¡rio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function StepHorario({
   servicoId, barbeiroId,
@@ -231,8 +256,8 @@ function StepHorario({
 
   return (
     <div>
-      <h2 className="text-xl font-display font-bold text-surface-50 mb-1">Escolha o horário</h2>
-      <p className="text-surface-400 font-body text-sm mb-6">Selecione o dia e o horário disponível.</p>
+      <h2 className="text-xl font-display font-bold text-surface-50 mb-1">Escolha o horÃ¡rio</h2>
+      <p className="text-surface-400 font-body text-sm mb-6">Selecione o dia e o horÃ¡rio disponÃ­vel.</p>
 
       <div className="mb-5">
         <label className="text-sm font-medium font-body text-surface-200 block mb-1.5">Data</label>
@@ -259,7 +284,7 @@ function StepHorario({
       ) : !horarios?.length ? (
         <div className="py-10 text-center">
           <Clock className="w-8 h-8 text-surface-700 mx-auto mb-3" />
-          <p className="text-surface-400 font-body text-sm">Nenhum horário disponível nesta data.</p>
+          <p className="text-surface-400 font-body text-sm">Nenhum horÃ¡rio disponÃ­vel nesta data.</p>
           <p className="text-surface-600 font-body text-xs mt-1">Tente outro dia.</p>
         </div>
       ) : (
@@ -286,7 +311,7 @@ function StepHorario({
   )
 }
 
-// ─── Step 4: Confirmação ──────────────────────────────────────────────────────
+// â”€â”€â”€ Step 4: ConfirmaÃ§Ã£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function StepConfirmar({
   servico, barbeiro, horario, loading, onConfirmar,
@@ -298,11 +323,11 @@ function StepConfirmar({
   onConfirmar: () => void
 }) {
   const items = [
-    { label: 'Serviço',   value: servico.nome                                            },
+    { label: 'ServiÃ§o',   value: servico.nome                                            },
     { label: 'Barbeiro',  value: barbeiro.usuario.nome                                   },
     { label: 'Data',      value: formatDataExtenso(horario.inicio)                       },
-    { label: 'Horário',   value: `${formatHora(horario.inicio)} – ${formatHora(horario.fim)}` },
-    { label: 'Duração',   value: `${servico.duracao} minutos`                            },
+    { label: 'HorÃ¡rio',   value: `${formatHora(horario.inicio)} â€“ ${formatHora(horario.fim)}` },
+    { label: 'DuraÃ§Ã£o',   value: `${servico.duracao} minutos`                            },
     { label: 'Valor',     value: `R$ ${Number(servico.preco).toFixed(2).replace('.', ',')}` },
   ]
 
@@ -340,7 +365,7 @@ function StepConfirmar({
   )
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function NovoAgendamento() {
   const navigate = useNavigate()
@@ -352,6 +377,16 @@ export default function NovoAgendamento() {
   const [barbeiro, setBarbeiro] = useState<Barbeiro | null>(null)
   const [horario, setHorario] = useState<HorarioDisponivel | null>(null)
 
+  const { data: assinaturaPlano } = useQuery({
+    queryKey: ['cliente-assinatura'],
+    queryFn: () => api.get<Assinatura[]>('/assinaturas/minhas').then(r => r.data.find(item => item.status === 'ATIVA') ?? r.data[0] ?? null).catch(() => null),
+  })
+
+  const { data: utilizacaoPlano } = useQuery({
+    queryKey: ['cliente-plano-utilizacao'],
+    queryFn: () => api.get<PlanoUtilizacao | null>('/assinaturas/minha/utilizacao').then(r => r.data).catch(() => null),
+  })
+
   const { mutate: confirmar, isPending } = useMutation({
     mutationFn: () => api.post('/agendamentos', {
       servicoId: servico!.id,
@@ -361,10 +396,11 @@ export default function NovoAgendamento() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['cliente-agendamentos'] })
       qc.invalidateQueries({ queryKey: ['cliente-agendamentos-lista'] })
-      success('Agendamento confirmado!', 'Até logo. ✂️')
+      qc.invalidateQueries({ queryKey: ['cliente-plano-utilizacao'] })
+      success('Agendamento confirmado!', 'AtÃ© logo. âœ‚ï¸')
       navigate('/cliente/agendamentos')
     },
-    onError: () => error('Erro', 'Não foi possível confirmar. Tente novamente.'),
+    onError: () => error('Erro', 'NÃ£o foi possÃ­vel confirmar. Tente novamente.'),
   })
 
   const voltar = () => setStep(s => Math.max(1, s - 1))
@@ -392,7 +428,7 @@ export default function NovoAgendamento() {
             transition={{ duration: 0.2 }}
           >
             {step === 1 && (
-              <StepServico onSelect={s => { setServico(s); setStep(2) }} />
+              <StepServico utilizacao={utilizacaoPlano} assinatura={assinaturaPlano} onSelect={s => { setServico(s); setStep(2) }} />
             )}
             {step === 2 && (
               <StepBarbeiro onSelect={b => { setBarbeiro(b); setStep(3) }} />
@@ -426,7 +462,7 @@ export default function NovoAgendamento() {
         )}
       </div>
 
-      {/* Resumo lateral do que já foi selecionado */}
+      {/* Resumo lateral do que jÃ¡ foi selecionado */}
       {(servico || barbeiro) && (
         <div className="mt-4 flex flex-wrap gap-2">
           {servico && (
@@ -444,3 +480,7 @@ export default function NovoAgendamento() {
     </motion.div>
   )
 }
+
+
+
+
