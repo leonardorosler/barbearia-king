@@ -132,13 +132,7 @@ function SidebarContent({
       {/* Logo */}
       <div className="px-4 py-5 border-b border-surface-800">
         <Link to="/" className="flex items-center gap-2.5">
-          {barbearia.logo ? (
-            <img src={barbearia.logo} alt={barbearia.nome} className="h-7 w-auto" />
-          ) : (
-            <div className="w-7 h-7 rounded-lg bg-brand-gradient flex items-center justify-center shrink-0">
-              <Scissors className="w-3.5 h-3.5 text-white" />
-            </div>
-          )}
+          <img src="/logoking.png" alt={barbearia.nome} className="h-7 w-auto shrink-0 object-contain" />
           <span className="font-display font-bold text-surface-50 truncate">
             {barbearia.nome}
           </span>
@@ -220,13 +214,7 @@ function MobileHeader({
 
       {/* Logo centralizado */}
       <Link to="/" className="flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
-        {barbearia.logo ? (
-          <img src={barbearia.logo} alt={barbearia.nome} className="h-6 w-auto" />
-        ) : (
-          <span className="font-display font-bold text-surface-50 text-base">
-            {barbearia.nome}
-          </span>
-        )}
+        <img src="/logoking.png" alt={barbearia.nome} className="h-6 w-auto object-contain" />
       </Link>
 
       {/* Avatar */}
