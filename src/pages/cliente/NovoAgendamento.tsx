@@ -17,9 +17,9 @@ function barbeiroEstaAtivo(barbeiro: Barbeiro) {
 // â”€â”€â”€ Steps â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const STEPS = [
-  { id: 1, label: 'ServiÃ§o',  icon: Scissors  },
+  { id: 1, label: 'Serviço',  icon: Scissors  },
   { id: 2, label: 'Barbeiro', icon: User       },
-  { id: 3, label: 'HorÃ¡rio',  icon: Calendar   },
+  { id: 3, label: 'Horário',  icon: Calendar   },
   { id: 4, label: 'Confirmar',icon: Check      },
 ]
 
@@ -256,8 +256,8 @@ function StepHorario({
 
   return (
     <div>
-      <h2 className="text-xl font-display font-bold text-surface-50 mb-1">Escolha o horÃ¡rio</h2>
-      <p className="text-surface-400 font-body text-sm mb-6">Selecione o dia e o horÃ¡rio disponÃ­vel.</p>
+      <h2 className="text-xl font-display font-bold text-surface-50 mb-1">Escolha o horário</h2>
+      <p className="text-surface-400 font-body text-sm mb-6">Selecione o dia e o horário disponível.</p>
 
       <div className="mb-5">
         <label className="text-sm font-medium font-body text-surface-200 block mb-1.5">Data</label>
@@ -284,7 +284,7 @@ function StepHorario({
       ) : !horarios?.length ? (
         <div className="py-10 text-center">
           <Clock className="w-8 h-8 text-surface-700 mx-auto mb-3" />
-          <p className="text-surface-400 font-body text-sm">Nenhum horÃ¡rio disponÃ­vel nesta data.</p>
+          <p className="text-surface-400 font-body text-sm">Nenhum horário disponível nesta data.</p>
           <p className="text-surface-600 font-body text-xs mt-1">Tente outro dia.</p>
         </div>
       ) : (
@@ -323,11 +323,11 @@ function StepConfirmar({
   onConfirmar: () => void
 }) {
   const items = [
-    { label: 'ServiÃ§o',   value: servico.nome                                            },
+    { label: 'Serviço',   value: servico.nome                                            },
     { label: 'Barbeiro',  value: barbeiro.usuario.nome                                   },
     { label: 'Data',      value: formatDataExtenso(horario.inicio)                       },
-    { label: 'HorÃ¡rio',   value: `${formatHora(horario.inicio)} â€“ ${formatHora(horario.fim)}` },
-    { label: 'DuraÃ§Ã£o',   value: `${servico.duracao} minutos`                            },
+    { label: 'Horário',   value: `${formatHora(horario.inicio)} - ${formatHora(horario.fim)}` },
+    { label: 'Duração',   value: `${servico.duracao} minutos`                            },
     { label: 'Valor',     value: `R$ ${Number(servico.preco).toFixed(2).replace('.', ',')}` },
   ]
 
@@ -397,10 +397,15 @@ export default function NovoAgendamento() {
       qc.invalidateQueries({ queryKey: ['cliente-agendamentos'] })
       qc.invalidateQueries({ queryKey: ['cliente-agendamentos-lista'] })
       qc.invalidateQueries({ queryKey: ['cliente-plano-utilizacao'] })
-      success('Agendamento confirmado!', 'AtÃ© logo. âœ‚ï¸')
+      success('Agendamento confirmado!', 'Até logo.')
       navigate('/cliente/agendamentos')
     },
-    onError: () => error('Erro', 'NÃ£o foi possÃ­vel confirmar. Tente novamente.'),
+    onError: (err: unknown) => {
+      const mensagem =
+        (err as { response?: { data?: { mensagem?: string } } })?.response?.data?.mensagem ??
+        'Não foi possível confirmar. Tente novamente.'
+      error('Erro', mensagem)
+    },
   })
 
   const voltar = () => setStep(s => Math.max(1, s - 1))
