@@ -1,15 +1,17 @@
-import type { ComponentType } from 'react'
+import { useState, type ComponentType } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   ArrowUpRight,
+  Bell,
   BarChart3,
   CalendarDays,
   ChevronRight,
   ClipboardList,
   CreditCard,
   Crown,
+  Megaphone,
   PackageCheck,
   Scissors,
   Settings,
@@ -109,6 +111,8 @@ function RankingEmpty({ label }: { label: string }) {
 }
 
 export default function AdminDashboard() {
+  const [acoesAberto, setAcoesAberto] = useState(false)
+
   const { data: dash, isLoading } = useQuery({
     queryKey: ['admin-dashboard'],
     queryFn:  () => api.get<Dashboard>('/dashboard').then(r => r.data),
@@ -135,6 +139,40 @@ export default function AdminDashboard() {
   const pendentesHoje = (agendamentosHoje ?? []).filter(a => a.status === 'PENDENTE').length
   const concluidosHoje = (agendamentosHoje ?? []).filter(a => a.status === 'CONCLUIDO').length
   const dataHoje = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })
+  const alertasAcao = [
+    {
+      value: dash?.agendamentosPendentes ?? 0,
+      title: 'agendamentos pendentes',
+      description: 'Aguardando confirmacao para nao perder horario.',
+      to: '/admin/agendamentos',
+      icon: ClipboardList,
+      tone: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
+    },
+    {
+      value: dash?.barbeirosSemDisponibilidade ?? 0,
+      title: 'barbeiros sem disponibilidade',
+      description: 'Cadastre horarios para liberar novos agendamentos.',
+      to: '/admin/barbeiros',
+      icon: Scissors,
+      tone: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+    },
+    {
+      value: dash?.clientesSemRetorno30Dias ?? 0,
+      title: 'clientes sem retorno ha 30 dias',
+      description: 'Boa oportunidade para campanha ou contato direto.',
+      to: '/admin/clientes',
+      icon: Users,
+      tone: 'text-green-400 bg-green-500/10 border-green-500/20',
+    },
+    {
+      value: dash?.horariosVagosHoje ?? 0,
+      title: 'horarios livres hoje',
+      description: 'Divulgue encaixes e transforme agenda vazia em receita.',
+      to: '/admin/agendamentos',
+      icon: Megaphone,
+      tone: 'text-brand-400 bg-brand-500/10 border-brand-500/20',
+    },
+  ].filter(alerta => alerta.value > 0)
 
   const quickActions = [
     { label: 'Agendamentos', to: '/admin/agendamentos', icon: CalendarDays, tone: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
@@ -150,7 +188,7 @@ export default function AdminDashboard() {
       <motion.div
         variants={fadeUp}
         custom={0}
-        className="relative overflow-hidden rounded-xl border border-surface-800 bg-surface-900 p-5 shadow-card sm:p-6"
+        className="relative overflow-visible rounded-xl border border-surface-800 bg-surface-900 p-5 shadow-card sm:p-6"
       >
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-400/60 to-transparent" />
         <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -165,17 +203,83 @@ export default function AdminDashboard() {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 rounded-lg border border-surface-800 bg-surface-950/60 p-2 sm:min-w-[360px]">
-            {[
-              { label: 'Pendentes', value: pendentesHoje },
-              { label: 'Confirmados', value: confirmadosHoje },
-              { label: 'Concluidos', value: concluidosHoje },
-            ].map(item => (
-              <div key={item.label} className="min-w-0 rounded-md bg-surface-900 px-3 py-2 text-center">
-                <p className="truncate text-lg font-display font-black text-surface-50">{item.value}</p>
-                <p className="truncate text-[11px] font-body text-surface-500">{item.label}</p>
-              </div>
-            ))}
+          <div className="flex min-w-0 flex-col gap-3 sm:min-w-[360px]">
+            <div className="relative flex justify-start sm:justify-end">
+              <Button
+                variant={alertasAcao.length > 0 ? 'outline' : 'ghost'}
+                size="sm"
+                leftIcon={<Bell className="h-3.5 w-3.5" />}
+                onClick={() => setAcoesAberto(aberto => !aberto)}
+              >
+                Acoes
+                {alertasAcao.length > 0 && (
+                  <span className="ml-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-500 px-1.5 text-[11px] font-body font-bold text-white">
+                    {alertasAcao.length}
+                  </span>
+                )}
+              </Button>
+
+              {acoesAberto && (
+                <div className="absolute left-0 top-10 z-30 w-[min(92vw,380px)] overflow-hidden rounded-xl border border-surface-800 bg-surface-950 shadow-card sm:left-auto sm:right-0">
+                  <div className="border-b border-surface-800 px-4 py-3">
+                    <p className="text-sm font-body font-semibold text-surface-100">Acoes recomendadas</p>
+                    <p className="mt-0.5 text-xs font-body text-surface-500">Pontos que merecem atencao agora.</p>
+                  </div>
+
+                  {isLoading ? (
+                    <div className="p-4">
+                      <SkeletonCard lines={3} />
+                    </div>
+                  ) : alertasAcao.length === 0 ? (
+                    <div className="px-4 py-6 text-center">
+                      <Bell className="mx-auto mb-2 h-8 w-8 text-surface-700" />
+                      <p className="text-sm font-body text-surface-300">Tudo em dia por aqui.</p>
+                      <p className="mt-1 text-xs font-body text-surface-500">Nenhuma acao urgente encontrada.</p>
+                    </div>
+                  ) : (
+                    <div className="max-h-[320px] overflow-y-auto p-2">
+                      {alertasAcao.map(alerta => {
+                        const Icon = alerta.icon
+                        return (
+                          <Link
+                            key={alerta.title}
+                            to={alerta.to}
+                            onClick={() => setAcoesAberto(false)}
+                            className="group flex min-w-0 gap-3 rounded-lg p-3 transition hover:bg-surface-900"
+                          >
+                            <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border', alerta.tone)}>
+                              <Icon className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-body font-semibold text-surface-100">
+                                {alerta.value} {alerta.title}
+                              </p>
+                              <p className="mt-0.5 text-xs font-body leading-relaxed text-surface-500">
+                                {alerta.description}
+                              </p>
+                            </div>
+                            <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-surface-600 transition-transform group-hover:translate-x-0.5" />
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 rounded-lg border border-surface-800 bg-surface-950/60 p-2">
+              {[
+                { label: 'Pendentes', value: pendentesHoje },
+                { label: 'Confirmados', value: confirmadosHoje },
+                { label: 'Concluidos', value: concluidosHoje },
+              ].map(item => (
+                <div key={item.label} className="min-w-0 rounded-md bg-surface-900 px-3 py-2 text-center">
+                  <p className="truncate text-lg font-display font-black text-surface-50">{item.value}</p>
+                  <p className="truncate text-[11px] font-body text-surface-500">{item.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </motion.div>

@@ -440,6 +440,8 @@ export interface Dashboard {
   ticketMedio: string | number
   clientesRecorrentesMes: number
   agendamentosPendentes: number
+  barbeirosSemDisponibilidade: number
+  clientesSemRetorno30Dias: number
   horariosVagosHoje: number
   barbeirosRanking: BarbeiroRanking[]
   servicosRanking: ServicoRanking[]
