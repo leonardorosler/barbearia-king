@@ -401,7 +401,7 @@ export default function AdminDashboard() {
                       <div className="flex shrink-0 items-center gap-3 sm:w-24">
                         <div className="flex h-12 w-12 flex-col items-center justify-center rounded-lg border border-brand-500/20 bg-brand-500/10">
                           <span className="text-sm font-display font-bold leading-none text-brand-300">{formatHora(ag.inicio)}</span>
-                          <span className="mt-1 text-[10px] font-body uppercase text-brand-400/70">{formatDataCurta(ag.inicio)}</span>
+                          <span className="mt-1 items-center justify-center text-[7px] font-body uppercase text-brand-200">{formatDataCurta(ag.inicio)}</span>
                         </div>
                       </div>
 

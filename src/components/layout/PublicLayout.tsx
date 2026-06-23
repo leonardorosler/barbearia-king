@@ -126,7 +126,7 @@ function Navbar() {
               className="h-8 w-auto object-contain"
             />
           ) : (
-            <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center">
+            <div className="w-8 h-8 rounded-md flex items-center justify-center bg-gray-950 p-0.5">
               {/* <Scissors className="w-4 h-4 text-white" /> */}
               <img src="/logoking.png" alt="" />
             </div>
@@ -274,7 +274,7 @@ function Footer() {
               {barbearia.logo ? (
                 <img src={barbearia.logo} alt={barbearia.nome} className="h-10 w-auto object-contain" />
               ) : (
-                <span className="flex h-10 w-10 items-center justify-center rounded-md bg-brand-gradient">
+                <span className="flex h-10 w-10 items-center justify-center rounded-md bg-black p-1">
                   <img src="/logoking.png" alt="" />
                 </span>
               )}
