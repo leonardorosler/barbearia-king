@@ -86,24 +86,27 @@ function SidebarItem({
       onClick={onClick}
       className={({ isActive }) =>
         cn(
-          'flex items-center gap-3 px-3 py-2.5 rounded-lg',
+          'relative flex min-w-0 items-center gap-3 rounded-lg px-3 py-2.5',
           'text-sm font-body font-medium',
-          'transition-all duration-150 group',
+          'transition-all duration-200 group',
           isActive
-            ? 'bg-brand-500/15 text-brand-400 border border-brand-500/25'
-            : 'text-surface-400 hover:bg-surface-800 hover:text-surface-100 border border-transparent',
+            ? 'bg-brand-500/15 text-brand-300 border border-brand-500/25 shadow-brand-sm'
+            : 'text-surface-400 hover:bg-surface-800/80 hover:text-surface-100 border border-transparent',
         )
       }
     >
       {({ isActive }) => (
         <>
+          {isActive && (
+            <span className="absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2 rounded-full bg-brand-400 shadow-brand-sm" />
+          )}
           <Icon
             className={cn(
               'w-4 h-4 shrink-0 transition-colors',
               isActive ? 'text-brand-400' : 'text-surface-500 group-hover:text-surface-300',
             )}
           />
-          <span className="flex-1 truncate">{item.label}</span>
+          <span className="min-w-0 flex-1 whitespace-normal leading-snug">{item.label}</span>
           {isActive && (
             <ChevronRight className="w-3.5 h-3.5 text-brand-500/60 shrink-0" />
           )}
@@ -128,10 +131,10 @@ function SidebarContent({
   const { usuario, papel, logout } = useAuth()
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full min-w-0 flex-col">
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-surface-800">
-        <Link to="/" className="flex items-center gap-2.5">
+      <div className="border-b border-surface-800 px-4 py-5">
+        <Link to="/" className="flex min-w-0 items-center gap-2.5">
           <img src="/logoking.png" alt={barbearia.nome} className="h-7 w-auto shrink-0 object-contain" />
           <span className="font-display font-bold text-surface-50 truncate">
             {barbearia.nome}
@@ -149,7 +152,7 @@ function SidebarContent({
       )}
 
       {/* Nav */}
-      <nav className="flex-1 px-3 pb-4 flex flex-col gap-1 overflow-y-auto">
+      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 pb-4">
         {items.map((item) => (
           <SidebarItem key={item.to} item={item} onClick={onNavClick} />
         ))}
@@ -202,7 +205,7 @@ function MobileHeader({
   const { usuario } = useAuth()
 
   return (
-    <header className="lg:hidden fixed top-0 inset-x-0 z-40 h-14 flex items-center justify-between px-4 bg-surface-950/95 backdrop-blur-md border-b border-surface-800">
+    <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-surface-800 bg-surface-950/95 px-4 backdrop-blur-md lg:hidden">
       {/* Hamburger */}
       <button
         onClick={onMenuOpen}
@@ -244,10 +247,10 @@ export function DashboardLayout() {
   const items = NAV_POR_PAPEL[papel]
 
   return (
-    <div className="min-h-screen bg-surface-950 flex">
+    <div className="flex min-h-screen overflow-x-hidden bg-surface-950">
 
       {/* ── Sidebar desktop ──────────────────────────────────────────────── */}
-      <aside className="hidden lg:flex flex-col w-64 shrink-0 fixed inset-y-0 left-0 bg-surface-950 border-r border-surface-800 z-30">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[17rem] shrink-0 flex-col border-r border-surface-800 bg-surface-950 lg:flex">
         <SidebarContent items={items} />
       </aside>
 
@@ -272,7 +275,7 @@ export function DashboardLayout() {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', stiffness: 400, damping: 40 }}
-              className="lg:hidden fixed inset-y-0 left-0 z-50 w-72 bg-surface-950 border-r border-surface-800 flex flex-col"
+              className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[88vw] flex-col border-r border-surface-800 bg-surface-950 lg:hidden"
             >
               {/* Botão fechar */}
               <button
@@ -293,11 +296,11 @@ export function DashboardLayout() {
 
       {/* ── Conteúdo principal ───────────────────────────────────────────── */}
       <main className={cn(
-        'min-w-0 flex-1 min-h-screen',
-        'lg:ml-64',           // margem da sidebar desktop
-        'pt-14 lg:pt-0',      // padding do header mobile
+        'min-h-screen min-w-0 flex-1 overflow-x-hidden',
+        'w-full lg:pl-[17rem]',
+        'pt-14 lg:pt-0',
       )}>
-        <div className="min-w-0 p-4 sm:p-6 lg:p-8">
+        <div className="min-w-0 p-4 lg:p-6">
           <Outlet />
         </div>
       </main>

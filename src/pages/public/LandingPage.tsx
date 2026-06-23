@@ -321,7 +321,7 @@ function Servicos() {
           </div>
         </motion.div>
 
-        <div className="relative overflow-hidden bg-[#f7f4ee] px-5 py-12 text-surface-950 sm:px-8 lg:px-10 lg:py-10 xl:px-12">
+        <div className="relative overflow-hidden bg-[#eae6dc] px-5 py-12 text-surface-950 sm:px-8 lg:px-10 lg:py-10 xl:px-12">
           <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full border border-brand-500/20" />
           <div className="pointer-events-none absolute bottom-0 right-0 h-32 w-32 border-l border-t border-brand-500/10" />
 
@@ -334,7 +334,7 @@ function Servicos() {
                 <h2 className="max-w-xl font-display text-4xl font-black uppercase leading-[0.92] text-surface-950 sm:text-5xl lg:text-[3.15rem]">
                   Serviços para sair no detalhe
                 </h2>
-                <p className="mt-5 max-w-xl text-sm font-body leading-relaxed text-surface-600 sm:text-base">
+                <p className="mt-5 max-w-xl text-sm font-body leading-relaxed text-surface-800 sm:text-base">
                   Escolha o serviço, veja duração e valor antes de reservar. A agenda segue conectada aos horários reais da barbearia.
                 </p>
               </div>

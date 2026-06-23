@@ -22,8 +22,8 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'>
 const paddingStyles = {
   none: '',
   sm:   'p-3',
-  md:   'p-5',
-  lg:   'p-6',
+  md:   'p-4 lg:p-5',
+  lg:   'p-5 lg:p-6',
 }
 
 export function Card({
@@ -42,7 +42,7 @@ export function Card({
   return (
     <div
       className={cn(
-        'bg-surface-900 rounded-xl border',
+        'min-w-0 bg-surface-900 rounded-xl border',
         'shadow-card',
         highlighted
           ? 'border-brand-500/50'
@@ -50,8 +50,7 @@ export function Card({
         hover && [
           'cursor-pointer',
           'transition-all duration-200 ease-smooth',
-          'hover:shadow-card-hover hover:-translate-y-0.5',
-          'hover:border-surface-700',
+          'hover:-translate-y-0.5 hover:border-brand-500/25 hover:shadow-card-hover',
         ],
         className,
       )}
@@ -61,7 +60,7 @@ export function Card({
       {hasHeader && (
         <div
           className={cn(
-            'border-b border-surface-800',
+            'min-w-0 border-b border-surface-800',
             paddingStyles[padding],
             children || footer ? 'pb-4' : '',
           )}
@@ -72,7 +71,7 @@ export function Card({
             </h3>
           )}
           {description && (
-            <p className="text-xs font-body text-surface-400 mt-0.5">
+            <p className="mt-0.5 text-xs font-body leading-relaxed text-surface-400">
               {description}
             </p>
           )}
@@ -81,7 +80,7 @@ export function Card({
 
       {/* Body */}
       {children && (
-        <div className={paddingStyles[padding]}>
+        <div className={cn('min-w-0', paddingStyles[padding])}>
           {children}
         </div>
       )}
@@ -90,7 +89,7 @@ export function Card({
       {footer && (
         <div
           className={cn(
-            'border-t border-surface-800',
+            'min-w-0 border-t border-surface-800',
             paddingStyles[padding],
             'pt-4',
           )}
@@ -113,7 +112,7 @@ export function CardHeader({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('px-5 pt-5 pb-4 border-b border-surface-800', className)}
+      className={cn('min-w-0 border-b border-surface-800 px-4 pb-4 pt-4 lg:px-5 lg:pt-5', className)}
       {...props}
     >
       {children}
@@ -127,7 +126,7 @@ export function CardBody({
   ...props
 }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn('p-5', className)} {...props}>
+    <div className={cn('min-w-0 p-4 lg:p-5', className)} {...props}>
       {children}
     </div>
   )
@@ -140,7 +139,7 @@ export function CardFooter({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('px-5 pb-5 pt-4 border-t border-surface-800', className)}
+      className={cn('min-w-0 border-t border-surface-800 px-4 pb-4 pt-4 lg:px-5 lg:pb-5', className)}
       {...props}
     >
       {children}
