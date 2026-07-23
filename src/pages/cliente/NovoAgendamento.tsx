@@ -1,29 +1,42 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, ChevronLeft, Scissors, User, Calendar, Clock, Sparkles } from 'lucide-react'
+import {
+  ArrowLeft,
+  Calendar,
+  Check,
+  CheckCircle2,
+  Clock,
+  CreditCard,
+  Scissors,
+  Sparkles,
+  Timer,
+  User,
+  UserRound,
+} from 'lucide-react'
 import { api } from '@/services/api'
-import { Button, SkeletonCard } from '@/components/ui'
+import { Button, Card, CardBody, CardHeader, SkeletonCard } from '@/components/ui'
 import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils'
 import { formatIsoDateLong, formatIsoTime, toDateInputValue } from '@/lib/date'
 import type { Servico, Barbeiro, HorarioDisponivel, PlanoUtilizacao, Assinatura } from '@/types'
 
+const fadeUp = {
+  hidden:  { opacity: 0, y: 20 },
+  visible: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.4, delay: i * 0.08 } }),
+}
+
+const STEPS = [
+  { id: 1, label: 'Serviço',   icon: Scissors },
+  { id: 2, label: 'Barbeiro',  icon: User },
+  { id: 3, label: 'Horário',   icon: Calendar },
+  { id: 4, label: 'Confirmar', icon: Check },
+]
+
 function barbeiroEstaAtivo(barbeiro: Barbeiro) {
   return barbeiro.usuario.ativo ?? barbeiro.ativo ?? true
 }
-
-// â”€â”€â”€ Steps â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-const STEPS = [
-  { id: 1, label: 'Serviço',  icon: Scissors  },
-  { id: 2, label: 'Barbeiro', icon: User       },
-  { id: 3, label: 'Horário',  icon: Calendar   },
-  { id: 4, label: 'Confirmar',icon: Check      },
-]
-
-// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function toDateInput(date: Date) {
   return toDateInputValue(date)
@@ -35,6 +48,10 @@ function formatHora(iso: string) {
 
 function formatDataExtenso(iso: string) {
   return formatIsoDateLong(iso)
+}
+
+function formatMoeda(valor: string | number) {
+  return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
 function buildDateTime(data: string, hora: string) {
@@ -51,50 +68,52 @@ function addMinutesToDateTime(data: string, hora: string, minutos: number) {
   return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}:00`
 }
 
-// â”€â”€â”€ Barra de progresso â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 function StepBar({ atual }: { atual: number }) {
   return (
-    <div className="mb-8 flex min-w-0 items-start gap-1 sm:gap-2">
-      {STEPS.map((step, i) => {
-        const done    = step.id < atual
-        const active  = step.id === atual
-        const Icon    = step.icon
+    <div className="flex min-w-0 justify-center rounded-lg border border-surface-800 bg-surface-900 px-2.5 py-2 shadow-card">
+      <div className="inline-flex min-w-0 items-center justify-center">
+      {STEPS.map((step) => {
+        const done = step.id < atual
+        const active = step.id === atual
+        const Icon = step.icon
+
         return (
-          <div key={step.id} className="flex min-w-0 flex-1 items-start gap-1.5 last:flex-none sm:gap-2">
-            <div className="flex flex-col items-center gap-1">
-              <div className={cn(
-                'flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all duration-300',
-                done   && 'bg-brand-500 border-brand-500',
-                active && 'bg-brand-500/15 border-brand-500',
-                !done && !active && 'bg-surface-900 border-surface-700',
-              )}>
-                {done
-                  ? <Check className="w-3.5 h-3.5 text-white" />
-                  : <Icon className={cn('w-3.5 h-3.5', active ? 'text-brand-400' : 'text-surface-600')} />
-                }
-              </div>
+          <div key={step.id} className="flex min-w-0 items-center">
+            <div
+              className={cn(
+                'flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-xs font-body font-semibold transition-colors',
+                active
+                  ? 'bg-brand-500/10 text-brand-300'
+                  : done
+                    ? 'text-green-400'
+                    : 'text-surface-500',
+              )}
+            >
               <span className={cn(
-                'hidden text-2xs font-body sm:block',
-                active ? 'text-brand-400' : done ? 'text-surface-400' : 'text-surface-600',
+                'flex h-6 w-6 shrink-0 items-center justify-center rounded-md border',
+                active
+                  ? 'border-brand-500/35 bg-brand-500/15'
+                  : done
+                    ? 'border-green-500/25 bg-green-500/10'
+                    : 'border-surface-800 bg-surface-950/50',
               )}>
-                {step.label}
+                {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
               </span>
+              <span className="hidden truncate sm:inline">{step.label}</span>
             </div>
-            {i < STEPS.length - 1 && (
-              <div className={cn(
-                'mt-4 h-px flex-1 transition-colors duration-300',
-                done ? 'bg-brand-500' : 'bg-surface-800',
+            {step.id < STEPS.length && (
+              <span className={cn(
+                'mx-1.5 h-px w-4 rounded-full sm:w-8',
+                done ? 'bg-green-500/35' : 'bg-surface-800',
               )} />
             )}
           </div>
         )
       })}
+      </div>
     </div>
   )
 }
-
-// â”€â”€â”€ Step 1: ServiÃ§o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function StepServico({
   utilizacao,
@@ -112,56 +131,63 @@ function StepServico({
 
   return (
     <div>
-      <h2 className="text-xl font-display font-bold text-surface-50 mb-1">Escolha o servico</h2>
-      <p className="text-surface-400 font-body text-sm mb-6">Selecione o que voce deseja realizar.</p>
+      <div className="mb-5">
+        <p className="flex items-center gap-2 text-sm font-body font-semibold text-surface-100">
+          <Scissors className="h-4 w-4 text-brand-400" />
+          Escolha o serviço
+        </p>
+        <p className="mt-0.5 text-xs font-body text-surface-500">Selecione o atendimento que você deseja realizar.</p>
+      </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} lines={2} />)}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {(data ?? []).map(s => {
             const beneficio = utilizacao?.servicos.find(item => item.servicoId === s.id)
             const servicoNoPlano = !!beneficio || !!assinatura?.plano.planosServicos.some(item => item.servico.id === s.id)
             const temSaldoPlano = !!beneficio && beneficio.disponiveis > 0
 
             return (
-              <button key={s.id} onClick={() => onSelect(s)}
+              <button
+                key={s.id}
+                onClick={() => onSelect(s)}
                 className={cn(
-                  'group relative overflow-hidden text-left p-4 rounded-xl border transition-all duration-200',
-                  servicoNoPlano ? 'bg-surface-900 border-brand-500/50' : 'bg-surface-900 border-surface-800',
-                  'hover:border-brand-500/50 hover:shadow-brand',
+                  'group relative min-w-0 overflow-hidden rounded-xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-500/40 hover:bg-surface-900 hover:shadow-card-hover',
+                  servicoNoPlano ? 'border-brand-500/40 bg-brand-500/5' : 'border-surface-800 bg-surface-950/40',
                 )}
               >
                 {servicoNoPlano && (
-                  <span className="absolute right-2 top-2 rounded-full bg-brand-500 px-2 py-0.5 text-[10px] font-bold uppercase leading-none text-surface-950 shadow-[0_0_12px_rgba(245,158,11,0.35)]">
+                  <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border border-brand-500/30 bg-brand-500/15 px-2 py-0.5 text-[10px] font-body font-bold uppercase leading-none text-brand-300">
+                    <Sparkles className="h-3 w-3" />
                     Plano
                   </span>
                 )}
-                <div className={cn('mb-2 flex min-w-0 flex-col gap-1 pr-0 sm:flex-row sm:items-start sm:justify-between sm:gap-2', servicoNoPlano && 'pt-3 sm:pr-16 sm:pt-0')}>
-                  <p className="min-w-0 font-display font-semibold text-surface-50 transition-colors group-hover:text-brand-300">
+                <div className={cn('mb-3 pr-0', servicoNoPlano && 'pr-16')}>
+                  <p className="truncate text-base font-body font-semibold text-surface-100 transition-colors group-hover:text-brand-300">
                     {s.nome}
                   </p>
-                  <span className="shrink-0 font-body text-sm font-bold text-brand-400 sm:ml-2">
-                    {temSaldoPlano ? 'Plano' : `R$ ${Number(s.preco).toFixed(2).replace('.', ',')}`}
-                  </span>
-                </div>
-                {s.descricao && (
-                  <p className="text-surface-500 font-body text-xs mb-2 line-clamp-2">{s.descricao}</p>
-                )}
-                <div className="flex flex-col gap-2 text-xs font-body text-surface-500 sm:flex-row sm:items-center sm:justify-between">
-                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {s.duracao} min</span>
-                  {beneficio && (
-                    <span className={cn(
-                      'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-medium',
-                      temSaldoPlano ? 'border-brand-500/30 bg-brand-500/10 text-brand-400' : 'border-surface-700 bg-surface-800 text-surface-500',
-                    )}>
-                      <Sparkles className="w-3 h-3" />
-                      {beneficio.disponiveis} de {beneficio.limite}
-                    </span>
+                  {s.descricao && (
+                    <p className="mt-1 line-clamp-2 text-xs font-body leading-relaxed text-surface-500">{s.descricao}</p>
                   )}
                 </div>
+                <div className="grid grid-cols-2 gap-2 text-xs font-body text-surface-500">
+                  <span className="inline-flex items-center gap-1.5 rounded-md border border-surface-800 bg-surface-900 px-2 py-1">
+                    <Timer className="h-3.5 w-3.5 text-blue-400" />
+                    {s.duracao}min
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-md border border-surface-800 bg-surface-900 px-2 py-1 font-semibold text-brand-400">
+                    <CreditCard className="h-3.5 w-3.5" />
+                    {temSaldoPlano ? 'Plano' : formatMoeda(s.preco)}
+                  </span>
+                </div>
+                {beneficio && (
+                  <p className="mt-3 text-xs font-body text-surface-500">
+                    {beneficio.disponiveis} de {beneficio.limite} usos disponíveis no plano.
+                  </p>
+                )}
               </button>
             )
           })}
@@ -170,6 +196,7 @@ function StepServico({
     </div>
   )
 }
+
 function StepBarbeiro({ onSelect }: { onSelect: (b: Barbeiro) => void }) {
   const { data, isLoading } = useQuery({
     queryKey: ['barbeiros-ag'],
@@ -178,38 +205,41 @@ function StepBarbeiro({ onSelect }: { onSelect: (b: Barbeiro) => void }) {
 
   return (
     <div>
-      <h2 className="text-xl font-display font-bold text-surface-50 mb-1">Escolha o barbeiro</h2>
-      <p className="text-surface-400 font-body text-sm mb-6">Quem vai cuidar de voce hoje?</p>
+      <div className="mb-5">
+        <p className="flex items-center gap-2 text-sm font-body font-semibold text-surface-100">
+          <UserRound className="h-4 w-4 text-brand-400" />
+          Escolha o barbeiro
+        </p>
+        <p className="mt-0.5 text-xs font-body text-surface-500">Selecione quem vai realizar o atendimento.</p>
+      </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} hasAvatar lines={1} />)}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {(data ?? []).map(b => (
-            <button key={b.id} onClick={() => onSelect(b)}
-              className={cn(
-                'group text-center p-4 rounded-xl border transition-all duration-200',
-                'bg-surface-900 border-surface-800',
-                'hover:border-brand-500/50 hover:shadow-brand flex flex-col items-center gap-3',
-              )}
+            <button
+              key={b.id}
+              onClick={() => onSelect(b)}
+              className="group flex min-w-0 flex-col items-center gap-3 rounded-xl border border-surface-800 bg-surface-950/40 p-4 text-center transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-500/40 hover:bg-surface-900 hover:shadow-card-hover"
             >
-              <div className="w-16 h-16 rounded-full overflow-hidden bg-surface-800 border-2 border-surface-700 group-hover:border-brand-500/50 transition-colors shrink-0">
+              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-surface-700 bg-surface-800 transition-colors group-hover:border-brand-500/50">
                 {b.foto ? (
-                  <img src={b.foto} alt={b.usuario.nome} className="w-full h-full object-cover" />
+                  <img src={b.foto} alt={b.usuario.nome} className="h-full w-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-xl font-display font-bold text-brand-500/50">
+                  <div className="flex h-full w-full items-center justify-center">
+                    <span className="text-xl font-display font-bold text-brand-500/60">
                       {b.usuario.nome.charAt(0)}
                     </span>
                   </div>
                 )}
               </div>
               <div className="min-w-0">
-                <p className="font-body font-semibold text-surface-100 text-sm">{b.usuario.nome}</p>
+                <p className="truncate text-sm font-body font-semibold text-surface-100">{b.usuario.nome}</p>
                 {(b.especialidades ?? []).length > 0 && (
-                  <p className="text-xs text-surface-500 mt-0.5">
+                  <p className="mt-0.5 truncate text-xs font-body text-surface-500">
                     {(b.especialidades ?? []).slice(0, 1).join(', ')}
                   </p>
                 )}
@@ -222,10 +252,9 @@ function StepBarbeiro({ onSelect }: { onSelect: (b: Barbeiro) => void }) {
   )
 }
 
-// â”€â”€â”€ Step 3: HorÃ¡rio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 function StepHorario({
-  servicoId, barbeiroId,
+  servicoId,
+  barbeiroId,
   duracaoMinutos,
   onSelect,
 }: {
@@ -256,39 +285,40 @@ function StepHorario({
 
   return (
     <div>
-      <h2 className="text-xl font-display font-bold text-surface-50 mb-1">Escolha o horário</h2>
-      <p className="text-surface-400 font-body text-sm mb-6">Selecione o dia e o horário disponível.</p>
-
-      <div className="mb-5">
-        <label className="text-sm font-medium font-body text-surface-200 block mb-1.5">Data</label>
-        <input
-          type="date"
-          value={dataSelecionada}
-          min={toDateInput(hoje)}
-          onChange={e => setDataSelecionada(e.target.value)}
-          className={cn(
-            'w-full sm:w-auto h-10 px-3 rounded-md border bg-surface-900',
-            'border-surface-700 text-surface-100 font-body text-sm',
-            'focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500',
-            '[color-scheme:dark]',
-          )}
-        />
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 text-sm font-body font-semibold text-surface-100">
+            <Calendar className="h-4 w-4 text-brand-400" />
+            Escolha o horário
+          </p>
+          <p className="mt-0.5 text-xs font-body text-surface-500">Selecione a data e um horário disponível.</p>
+        </div>
+        <label className="min-w-0 sm:w-48">
+          <span className="mb-1 block text-[11px] font-body font-semibold uppercase tracking-wider text-surface-500">Data</span>
+          <input
+            type="date"
+            value={dataSelecionada}
+            min={toDateInput(hoje)}
+            onChange={e => setDataSelecionada(e.target.value)}
+            className="h-10 w-full rounded-md border border-surface-700 bg-surface-900 px-3 text-sm font-body text-surface-100 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 [color-scheme:dark]"
+          />
+        </label>
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="h-10 rounded-lg bg-surface-800 animate-shimmer" />
           ))}
         </div>
-      ) : !horarios?.length ? (
-        <div className="py-10 text-center">
-          <Clock className="w-8 h-8 text-surface-700 mx-auto mb-3" />
-          <p className="text-surface-400 font-body text-sm">Nenhum horário disponível nesta data.</p>
-          <p className="text-surface-600 font-body text-xs mt-1">Tente outro dia.</p>
+      ) : !horarios.length ? (
+        <div className="rounded-xl border border-dashed border-surface-800 bg-surface-950/40 px-4 py-12 text-center">
+          <Clock className="mx-auto mb-3 h-9 w-9 text-surface-700" />
+          <p className="text-sm font-body font-semibold text-surface-300">Nenhum horário disponível nesta data.</p>
+          <p className="mt-1 text-xs font-body text-surface-500">Tente outro dia para encontrar novos horários.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {horarios.map(hora => (
             <button
               key={hora}
@@ -296,11 +326,7 @@ function StepHorario({
                 inicio: buildDateTime(dataSelecionada, hora),
                 fim: addMinutesToDateTime(dataSelecionada, hora, duracaoMinutos),
               })}
-              className={cn(
-                'h-10 rounded-lg border text-sm font-body font-medium transition-all duration-150',
-                'bg-surface-900 border-surface-700 text-surface-300',
-                'hover:border-brand-500/60 hover:bg-brand-500/10 hover:text-brand-300',
-              )}
+              className="h-11 rounded-lg border border-surface-800 bg-surface-950/40 text-sm font-body font-semibold text-surface-300 transition-all duration-150 hover:border-brand-500/50 hover:bg-brand-500/10 hover:text-brand-300"
             >
               {hora}
             </button>
@@ -311,42 +337,49 @@ function StepHorario({
   )
 }
 
-// â”€â”€â”€ Step 4: ConfirmaÃ§Ã£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 function StepConfirmar({
-  servico, barbeiro, horario, loading, onConfirmar,
+  servico,
+  barbeiro,
+  horario,
+  loading,
+  onConfirmar,
 }: {
-  servico:    Servico
-  barbeiro:   Barbeiro
-  horario:    HorarioDisponivel
-  loading:    boolean
+  servico: Servico
+  barbeiro: Barbeiro
+  horario: HorarioDisponivel
+  loading: boolean
   onConfirmar: () => void
 }) {
   const items = [
-    { label: 'Serviço',   value: servico.nome                                            },
-    { label: 'Barbeiro',  value: barbeiro.usuario.nome                                   },
-    { label: 'Data',      value: formatDataExtenso(horario.inicio)                       },
-    { label: 'Horário',   value: `${formatHora(horario.inicio)} - ${formatHora(horario.fim)}` },
-    { label: 'Duração',   value: `${servico.duracao} minutos`                            },
-    { label: 'Valor',     value: `R$ ${Number(servico.preco).toFixed(2).replace('.', ',')}` },
+    { label: 'Serviço',  value: servico.nome },
+    { label: 'Barbeiro', value: barbeiro.usuario.nome },
+    { label: 'Data',     value: formatDataExtenso(horario.inicio) },
+    { label: 'Horário',  value: `${formatHora(horario.inicio)} - ${formatHora(horario.fim)}` },
+    { label: 'Duração',  value: `${servico.duracao} minutos` },
+    { label: 'Valor',    value: formatMoeda(servico.preco), highlight: true },
   ]
 
   return (
     <div>
-      <h2 className="text-xl font-display font-bold text-surface-50 mb-1">Confirmar agendamento</h2>
-      <p className="text-surface-400 font-body text-sm mb-6">Confira os detalhes antes de confirmar.</p>
+      <div className="mb-5">
+        <p className="flex items-center gap-2 text-sm font-body font-semibold text-surface-100">
+          <CheckCircle2 className="h-4 w-4 text-brand-400" />
+          Confirmar agendamento
+        </p>
+        <p className="mt-0.5 text-xs font-body text-surface-500">Confira os detalhes antes de confirmar.</p>
+      </div>
 
-      <div className="bg-surface-900 border border-surface-800 rounded-xl overflow-hidden mb-6">
+      <div className="mb-6 overflow-hidden rounded-xl border border-surface-800 bg-surface-950/40">
         {items.map((item, i) => (
-          <div key={item.label} className={cn(
-            'flex flex-col gap-1 px-4 py-3 font-body text-sm sm:flex-row sm:items-center sm:justify-between',
-            i < items.length - 1 && 'border-b border-surface-800',
-          )}>
+          <div
+            key={item.label}
+            className={cn(
+              'flex flex-col gap-1 px-4 py-3 font-body text-sm sm:flex-row sm:items-center sm:justify-between',
+              i < items.length - 1 && 'border-b border-surface-800',
+            )}
+          >
             <span className="text-surface-500">{item.label}</span>
-            <span className={cn(
-              'break-words font-medium sm:text-right',
-              item.label === 'Valor' ? 'text-brand-400' : 'text-surface-100',
-            )}>
+            <span className={cn('break-words font-medium sm:text-right', item.highlight ? 'text-brand-400' : 'text-surface-100')}>
               {item.value}
             </span>
           </div>
@@ -354,9 +387,11 @@ function StepConfirmar({
       </div>
 
       <Button
-        variant="primary" size="lg" fullWidth
+        variant="primary"
+        size="lg"
+        fullWidth
         loading={loading}
-        leftIcon={<Check className="w-4 h-4" />}
+        leftIcon={<Check className="h-4 w-4" />}
         onClick={onConfirmar}
       >
         Confirmar agendamento
@@ -365,14 +400,12 @@ function StepConfirmar({
   )
 }
 
-// â”€â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 export default function NovoAgendamento() {
   const navigate = useNavigate()
-  const qc       = useQueryClient()
+  const qc = useQueryClient()
   const { success, error } = useToast()
 
-  const [step, setStep]       = useState(1)
+  const [step, setStep] = useState(1)
   const [servico, setServico] = useState<Servico | null>(null)
   const [barbeiro, setBarbeiro] = useState<Barbeiro | null>(null)
   const [horario, setHorario] = useState<HorarioDisponivel | null>(null)
@@ -411,81 +444,162 @@ export default function NovoAgendamento() {
   const voltar = () => setStep(s => Math.max(1, s - 1))
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mx-auto w-full max-w-3xl"
-    >
-      <div className="mb-6">
-        <h1 className="text-2xl font-display font-bold text-surface-50">Novo Agendamento</h1>
-        <p className="text-surface-400 font-body text-sm mt-0.5">Siga os passos abaixo.</p>
-      </div>
-
-      <StepBar atual={step} />
-
-      <div className="rounded-xl border border-surface-800 bg-surface-900 p-4 shadow-card sm:p-6">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={step}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.2 }}
-          >
-            {step === 1 && (
-              <StepServico utilizacao={utilizacaoPlano} assinatura={assinaturaPlano} onSelect={s => { setServico(s); setStep(2) }} />
-            )}
-            {step === 2 && (
-              <StepBarbeiro onSelect={b => { setBarbeiro(b); setStep(3) }} />
-            )}
-            {step === 3 && servico && barbeiro && (
-              <StepHorario
-                servicoId={servico.id}
-                barbeiroId={barbeiro.id}
-                duracaoMinutos={servico.duracao}
-                onSelect={h => { setHorario(h); setStep(4) }}
-              />
-            )}
-            {step === 4 && servico && barbeiro && horario && (
-              <StepConfirmar
-                servico={servico}
-                barbeiro={barbeiro}
-                horario={horario}
-                loading={isPending}
-                onConfirmar={confirmar}
-              />
-            )}
-          </motion.div>
-        </AnimatePresence>
-
-        {step > 1 && (
-          <div className="mt-6 pt-4 border-t border-surface-800">
-            <Button variant="ghost" size="sm" fullWidth leftIcon={<ChevronLeft className="w-4 h-4" />} onClick={voltar} className="sm:w-auto">
-              Voltar
-            </Button>
+    <motion.div initial="hidden" animate="visible" className="mx-auto flex w-full max-w-[1400px] flex-col gap-5 lg:gap-6">
+      <motion.div
+        variants={fadeUp}
+        custom={0}
+        className="relative min-w-0 overflow-hidden rounded-xl border border-surface-800 bg-surface-900 p-4 shadow-card lg:p-5"
+      >
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-400/60 to-transparent" />
+        <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <div className="min-w-0">
+            <p className="mb-2 inline-flex items-center gap-2 rounded-md border border-brand-500/20 bg-brand-500/10 px-2.5 py-1 text-xs font-body font-semibold uppercase tracking-wider text-brand-300">
+              <Calendar className="h-3.5 w-3.5" />
+              Reserva de horário
+            </p>
+            <h1 className="text-2xl font-display font-bold text-surface-50 sm:text-3xl">
+              Novo Agendamento
+            </h1>
+            <p className="mt-1 max-w-2xl text-sm font-body leading-relaxed text-surface-400">
+              Escolha serviço, barbeiro e horário para confirmar seu próximo atendimento.
+            </p>
           </div>
-        )}
-      </div>
 
-      {/* Resumo lateral do que jÃ¡ foi selecionado */}
-      {(servico || barbeiro) && (
-        <div className="mt-4 flex min-w-0 flex-wrap gap-2">
-          {servico && (
-            <span className="flex max-w-full items-center gap-1.5 rounded-full border border-brand-500/20 bg-brand-500/10 px-2.5 py-1 text-xs font-body text-brand-400">
-              <Scissors className="w-3 h-3" /> {servico.nome}
-            </span>
-          )}
-          {barbeiro && (
-            <span className="flex max-w-full items-center gap-1.5 rounded-full border border-brand-500/20 bg-brand-500/10 px-2.5 py-1 text-xs font-body text-brand-400">
-              <User className="w-3 h-3" /> {barbeiro.usuario.nome}
-            </span>
-          )}
+          <div className="rounded-lg border border-surface-800 bg-surface-950/60 px-3 py-2 text-xs font-body text-surface-400">
+            Etapa {step} de {STEPS.length}
+          </div>
         </div>
-      )}
+      </motion.div>
+
+      <motion.div variants={fadeUp} custom={1}>
+        <StepBar atual={step} />
+      </motion.div>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+        <motion.div variants={fadeUp} custom={2} className="min-w-0">
+          <Card className="min-w-0 overflow-hidden">
+            <CardBody className="p-4 sm:p-5">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={step}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {step === 1 && (
+                    <StepServico
+                      utilizacao={utilizacaoPlano}
+                      assinatura={assinaturaPlano}
+                      onSelect={s => { setServico(s); setStep(2) }}
+                    />
+                  )}
+                  {step === 2 && (
+                    <StepBarbeiro onSelect={b => { setBarbeiro(b); setStep(3) }} />
+                  )}
+                  {step === 3 && servico && barbeiro && (
+                    <StepHorario
+                      servicoId={servico.id}
+                      barbeiroId={barbeiro.id}
+                      duracaoMinutos={servico.duracao}
+                      onSelect={h => { setHorario(h); setStep(4) }}
+                    />
+                  )}
+                  {step === 4 && servico && barbeiro && horario && (
+                    <StepConfirmar
+                      servico={servico}
+                      barbeiro={barbeiro}
+                      horario={horario}
+                      loading={isPending}
+                      onConfirmar={confirmar}
+                    />
+                  )}
+                </motion.div>
+              </AnimatePresence>
+
+              {step > 1 && (
+                <div className="mt-6 border-t border-surface-800 pt-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    fullWidth
+                    leftIcon={<ArrowLeft className="h-4 w-4" />}
+                    onClick={voltar}
+                    className="sm:w-auto"
+                  >
+                    Voltar
+                  </Button>
+                </div>
+              )}
+            </CardBody>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={fadeUp} custom={3} className="flex min-w-0 flex-col gap-6">
+          <Card className="min-w-0 overflow-hidden">
+            <CardHeader className="px-4 sm:px-5">
+              <p className="flex items-center gap-2 text-sm font-body font-semibold text-surface-100">
+                <Sparkles className="h-4 w-4 text-brand-400" />
+                Resumo da escolha
+              </p>
+              <p className="mt-0.5 text-xs font-body text-surface-500">Os detalhes aparecem conforme você avança.</p>
+            </CardHeader>
+            <CardBody className="p-4 sm:p-5">
+              <div className="flex flex-col gap-3">
+                <ResumoItem icon={Scissors} label="Serviço" value={servico?.nome ?? 'Ainda não selecionado'} active={!!servico} />
+                <ResumoItem icon={UserRound} label="Barbeiro" value={barbeiro?.usuario.nome ?? 'Ainda não selecionado'} active={!!barbeiro} />
+                <ResumoItem icon={Clock} label="Horário" value={horario ? `${formatDataExtenso(horario.inicio)} às ${formatHora(horario.inicio)}` : 'Ainda não selecionado'} active={!!horario} />
+              </div>
+            </CardBody>
+          </Card>
+
+          {servico && (
+            <Card className="min-w-0 overflow-hidden">
+              <CardHeader className="px-4 sm:px-5">
+                <p className="flex items-center gap-2 text-sm font-body font-semibold text-surface-100">
+                  <Timer className="h-4 w-4 text-brand-400" />
+                  Serviço selecionado
+                </p>
+              </CardHeader>
+              <CardBody className="p-4 sm:p-5">
+                <div className="rounded-lg border border-surface-800 bg-surface-950/40 p-3">
+                  <p className="text-sm font-body font-semibold text-surface-100">{servico.nome}</p>
+                  <div className="mt-2 flex flex-wrap gap-2 text-xs font-body">
+                    <span className="rounded-md border border-surface-800 bg-surface-900 px-2 py-1 text-surface-400">{servico.duracao}min</span>
+                    <span className="rounded-md border border-brand-500/20 bg-brand-500/10 px-2 py-1 text-brand-300">{formatMoeda(servico.preco)}</span>
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+          )}
+        </motion.div>
+      </div>
     </motion.div>
   )
 }
 
-
-
-
+function ResumoItem({
+  icon: Icon,
+  label,
+  value,
+  active,
+}: {
+  icon: typeof Scissors
+  label: string
+  value: string
+  active: boolean
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-3 rounded-lg border border-surface-800 bg-surface-950/40 p-3">
+      <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border', active ? 'border-brand-500/25 bg-brand-500/10 text-brand-300' : 'border-surface-800 bg-surface-900 text-surface-600')}>
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-[11px] font-body font-semibold uppercase tracking-wider text-surface-500">{label}</p>
+        <p className={cn('mt-0.5 truncate text-sm font-body font-semibold', active ? 'text-surface-100' : 'text-surface-600')}>
+          {value}
+        </p>
+      </div>
+    </div>
+  )
+}

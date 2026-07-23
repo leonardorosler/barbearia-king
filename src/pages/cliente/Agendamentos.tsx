@@ -19,7 +19,7 @@ import { api } from '@/services/api'
 import { Button, Card, CardBody, CardHeader, BadgeAgendamento, Modal, SkeletonCard } from '@/components/ui'
 import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils'
-import { compareIsoDateTime, formatIsoDate, formatIsoDateMonthShort, formatIsoTime } from '@/lib/date'
+import { compareIsoDateTime, formatIsoDate, formatIsoDateLong, formatIsoTime } from '@/lib/date'
 import type { Agendamento, StatusAgendamento } from '@/types'
 
 const fadeUp = {
@@ -27,12 +27,20 @@ const fadeUp = {
   visible: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.4, delay: i * 0.08 } }),
 }
 
-function formatData(iso: string) {
-  return formatIsoDateMonthShort(iso)
-}
-
 function formatDataCompleta(iso: string) {
   return formatIsoDate(iso)
+}
+
+function formatDataCard(iso: string) {
+  const dataLonga = formatIsoDateLong(iso)
+  const [diaSemana = '', data = ''] = dataLonga.split(',')
+  const partesData = data.trim().split(' ')
+
+  return {
+    dia: partesData[0] || formatIsoDate(iso).split('/')[0],
+    mes: partesData[2]?.slice(0, 3) || '',
+    semana: diaSemana.replace('-feira', '').slice(0, 3),
+  }
 }
 
 function formatHora(iso: string) {
@@ -238,16 +246,27 @@ export default function ClienteAgendamentos() {
             ) : (
               <div className="flex min-w-0 flex-col gap-3">
                 {lista.map(a => {
-                  const dataPartes = formatData(a.inicio).split(' ')
+                  const dataCard = formatDataCard(a.inicio)
                   const podeCancelar = ['PENDENTE', 'CONFIRMADO'].includes(a.status)
 
                   return (
                     <div key={a.id} className="group overflow-hidden rounded-xl border border-surface-800 bg-surface-950/40 transition-all duration-200 hover:border-brand-500/25 hover:bg-surface-900">
                       <div className="flex min-w-0 flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between lg:p-5">
                         <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center">
-                          <div className="flex h-16 w-full shrink-0 items-center justify-center gap-3 rounded-lg border border-brand-500/20 bg-brand-500/10 px-4 sm:w-24 sm:flex-col sm:gap-1 sm:px-2">
-                            <span className="text-xs font-body uppercase leading-none text-brand-300">{dataPartes[1]}</span>
-                            <span className="text-xl font-display font-black leading-none text-brand-200">{dataPartes[0]}</span>
+                          <div className="flex w-full shrink-0 items-center justify-between gap-3 rounded-lg border border-brand-500/20 bg-gradient-to-br from-brand-500/15 to-brand-500/5 px-3 py-3 sm:w-32 sm:flex-col sm:items-start sm:justify-center">
+                            <div className="flex items-center gap-2 sm:block">
+                              <span className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-brand-500/25 bg-brand-500/10 text-xs font-body font-bold uppercase text-brand-300 sm:h-auto sm:w-auto sm:border-0 sm:bg-transparent">
+                                {dataCard.semana}
+                              </span>
+                              <div className="flex items-baseline gap-1 sm:mt-1">
+                                <span className="text-2xl font-display font-black leading-none text-brand-100">{dataCard.dia}</span>
+                                <span className="text-sm font-body font-bold uppercase text-brand-300">{dataCard.mes}</span>
+                              </div>
+                            </div>
+                            <span className="inline-flex items-center gap-1.5 rounded-md border border-surface-700/70 bg-surface-950/50 px-2 py-1 text-xs font-body font-semibold text-surface-200">
+                              <Clock className="h-3.5 w-3.5 text-blue-400" />
+                              {formatHora(a.inicio)}
+                            </span>
                           </div>
 
                           <div className="hidden h-14 w-px shrink-0 bg-surface-800 sm:block" />
@@ -261,10 +280,6 @@ export default function ClienteAgendamentos() {
                               <span className="inline-flex min-w-0 items-center gap-1.5 rounded-md border border-surface-800 bg-surface-900 px-2 py-1">
                                 <UserRound className="h-3.5 w-3.5 shrink-0 text-brand-400" />
                                 <span className="truncate">{a.barbeiro.usuario.nome}</span>
-                              </span>
-                              <span className="inline-flex items-center gap-1.5 rounded-md border border-surface-800 bg-surface-900 px-2 py-1">
-                                <Clock className="h-3.5 w-3.5 shrink-0 text-blue-400" />
-                                {formatHora(a.inicio)}
                               </span>
                               <span className="inline-flex items-center gap-1.5 rounded-md border border-surface-800 bg-surface-900 px-2 py-1">
                                 <Timer className="h-3.5 w-3.5 shrink-0 text-yellow-400" />
